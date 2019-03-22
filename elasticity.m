@@ -5,7 +5,7 @@ function [u,A,b,FREENODE,fracture_matrice,POINTS,ELEMENTS,coords1,coords2,inters
 %% example: preparation of a network
 %  triangulation of a rectangular domain <0,L1>x<0,L2>
 L1=1; L2=1;
-nx=41; ny=41;
+nx=81; ny=81;
 [coords1,coords2]=meshgrid(linspace(0,L1,nx),linspace(0,L2,ny));
 coords1=coords1(:); coords2=coords2(:);
 POINTS=[coords1,coords2];
