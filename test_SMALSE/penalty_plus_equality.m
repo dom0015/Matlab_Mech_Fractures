@@ -1,5 +1,7 @@
 %% PENALTY
-[u,A_e,b_e,FREENODE,fracture_matrice,POINTS,ELEMENTS,coords1,coords2,intersections] = elasticity();
+addpath(genpath('files_elasticity'))
+n_node=31;
+[u,A_e,b_e,FREENODE,fracture_matrice,POINTS,ELEMENTS,coords1,coords2,intersections] = elasticity(n_node);
 [NODE_ABOVE,NODE_UNDER] = precomp_overlap(fracture_matrice,intersections);
 grad_hess=@(u)calculate_grad_hess(u, POINTS, fracture_matrice,NODE_ABOVE,NODE_UNDER);
 
@@ -7,15 +9,13 @@ u(FREENODE)=A_e(FREENODE,FREENODE)\b_e(FREENODE);
 
 omega=1;
 coef=1;
-for j=1
+for j=[2 4 6]
     coef=10^j;
-    for i=1
+    for i=1:3
         fprintf('%f - %f \n',coef,omega)
         [grad_P,hess_P,~,~]=grad_hess(u);
         W=A_e+coef*hess_P;
         Aeui=A_e*u; Aeui=Aeui(FREENODE);
-%         u(FREENODE)=u(FREENODE)+omega*(W(FREENODE,FREENODE)\b_e(FREENODE)-u(FREENODE));
-        %u(FREENODE)=u(FREENODE)-omega*(W(FREENODE,FREENODE)\(Aeui+coef*grad_P(FREENODE)-b_e(FREENODE)));
         A_tmp=W(FREENODE,FREENODE);
         B_tmp=(Aeui+coef*grad_P(FREENODE)-b_e(FREENODE));
         vec_tmp=A_tmp\B_tmp;
