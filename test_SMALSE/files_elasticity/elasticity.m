@@ -142,6 +142,6 @@ for i=1:length(NVALUE)
     b(NBOUNDARY(i,:)*2-1)=b(NBOUNDARY(i,:)*2-1)+len*NVALUE(i,1)/2;
     b(NBOUNDARY(i,:)*2)=b(NBOUNDARY(i,:)*2)+len*NVALUE(i,2)/2;
 end
-
+A=sparse(A);
 end
 
