@@ -82,7 +82,8 @@ F=[0*ones(n_POINTS,1) 0*ones(n_POINTS,1)];
 
 %% construction of global "stiffness" matrix and rhs
 AREAS=polyarea(coords1(ELEMENTS),coords2(ELEMENTS),2);
-A=zeros(n_POINTS*2);
+%A=sparse(n_POINTS*2,n_POINTS*2);
+A=sparse([],[],[],n_POINTS*2,n_POINTS*2,n_POINTS*2*22);
 % b=zeros(n_POINTS*2,1);
 for i=1:n_ELEMENTS
     % add local "stiffness" matrix

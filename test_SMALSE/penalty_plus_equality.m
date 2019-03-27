@@ -1,6 +1,6 @@
 %% PENALTY
 addpath(genpath('files_elasticity'))
-n_node=31;
+n_node=81;
 [u,A_e,b_e,FREENODE,fracture_matrice,POINTS,ELEMENTS,coords1,coords2,intersections] = elasticity(n_node);
 [NODE_ABOVE,NODE_UNDER] = precomp_overlap(fracture_matrice,intersections);
 grad_hess=@(u)calculate_grad_hess(u, POINTS, fracture_matrice,NODE_ABOVE,NODE_UNDER);
@@ -9,7 +9,7 @@ u(FREENODE)=A_e(FREENODE,FREENODE)\b_e(FREENODE);
 
 omega=1;
 coef=1;
-for j=[2 4 6]
+for j=[2 4 5]
     coef=10^j;
     for i=1:3
         fprintf('%f - %f \n',coef,omega)

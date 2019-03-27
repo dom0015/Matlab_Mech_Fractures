@@ -2,8 +2,12 @@
 % MPRGP
 
 %% inputs (from elesticity with fracture)
-n_node=21; % 5*k+1;
-[F,b0,G,u_orig,FREENODE,ELEMENTS,coords1,coords2] = SMALSE_precomp(n_node);
+n_node=81; % 5*k+1;
+[F,b0,G,geom] = SMALSE_precomp(n_node);
+
+u = penalta(F,b0,geom.recalculate_B,0,100,1e-4,2);
+G=geom.recalculate_B(u);
+
 [m,n]=size(G);
 F=[F zeros(n,m); zeros(m,n+m)];
 b0=[b0; zeros(m,1)];
@@ -13,10 +17,10 @@ G=[G eye(m)];
 Q=G'*G;
 %%
 
-lAl=norm(full(F));
-alfa=1/lAl;         % alpha_bar...can be computed more precisously  by Reigh.quotient
+lFl=normest(F);
 
-rel=1.0e-4;  rho0=1000; betarho=2; M=10*lAl; M_old = M;
+
+rel=1.0e-4;  rho0=10; betarho=2;
 epsr = rel*norm(b0); Gama = 1;
 ncg = 0; ne = 0; np = 0; nout = 0; ncg_max = 10000;
 VLag=[]; VLagIn=[]; Vnarus=[]; Vgp=[]; VM=[]; VCrit=[]; Increment=0;
@@ -25,22 +29,23 @@ c(niq) = -Inf*ones(length(niq),1);
 %u = max(B*f/2,c);
 u=max(zeros(size(F,1),1),c);
 J = (u > c);
-rho = rho0* lAl;
+rho = rho0* lFl;
 Gu=G*u;
 mi=zeros(size(G,1),1);  mi=mi+rho*Gu;
 b=b0-G'*mi;   b_old=b;
 % A=P*F*P+rho*Q;
 A=F+rho*Q;
+lAl=normest(A);
+alfa=1/lAl;         % alpha_bar...can be computed more precisously  by Reigh.quotient
+ M=10*lAl; M_old = M;
 g = A*u - b;
 
 Lag=0.5*u'*A*u-b'*u;
-gp=ones(length(u));
+gp=ones(length(u),1);
 ny0=norm(b0);
 
 while (1)
-    u_orig(FREENODE)=u(1:n);
-    figure; triplot(ELEMENTS,coords1,coords2,'g');
-    hold on; triplot(ELEMENTS,coords1+u_orig(1:2:end),coords2+u_orig(2:2:end),'b');
+    %geom.plot(u(1:n));
     if (norm(gp)<epsr && norm(Gu)<epsr) break; end;
     
     %     lAl=norm(full(A));
@@ -55,7 +60,7 @@ while (1)
     
     while (1)
         crit=min(M*norm(Gu),ny0);
-        fprintf('%f < 1 nebo %f<1 a %f < 1\n',norm(gp)/ crit,norm(gp)/epsr, norm(Gu)/epsr)
+        %fprintf('%f < 1 nebo %f<1 a %f < 1\n',norm(gp)/ crit,norm(gp)/epsr, norm(Gu)/epsr)
         if norm(gp)<crit || (norm(gp)<epsr && norm(Gu)<epsr) break; end;
         VCrit=[VCrit crit];
         
@@ -114,6 +119,7 @@ while (1)
     nout = nout + 1;
     if (ncg>=ncg_max) break; end;
 end
+geom.plot(u(1:n));
 
 [nout ncg ne np]
 figure; semilogy(Vgp, 'r'); hold on; semilogy(Vnarus, 'g'); semilogy(abs(VLagIn), 'b'); semilogy(VCrit, 'k');
