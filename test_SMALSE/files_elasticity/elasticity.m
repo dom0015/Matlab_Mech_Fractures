@@ -83,33 +83,37 @@ F=[0*ones(n_POINTS,1) 0*ones(n_POINTS,1)];
 %% construction of global "stiffness" matrix and rhs
 AREAS=polyarea(coords1(ELEMENTS),coords2(ELEMENTS),2);
 %A=sparse(n_POINTS*2,n_POINTS*2);
-A=sparse([],[],[],n_POINTS*2,n_POINTS*2,n_POINTS*2*22);
+if Nxy>121
+    A=sparse([],[],[],n_POINTS*2,n_POINTS*2,n_POINTS*2*22);
+else
+    A=zeros(n_POINTS*2);
+end
 % b=zeros(n_POINTS*2,1);
 for i=1:n_ELEMENTS
     % add local "stiffness" matrix
     x=POINTS(ELEMENTS(i,:),:);
-%     Bref=[-1.0  0.0 1.0 0.0 0.0 0.0
-%            0.0 -1.0 0.0 0.0 0.0 1.0
-%           -0.5 -0.5 0.0 0.5 0.5 0.0];
+    %     Bref=[-1.0  0.0 1.0 0.0 0.0 0.0
+    %            0.0 -1.0 0.0 0.0 0.0 1.0
+    %           -0.5 -0.5 0.0 0.5 0.5 0.0];
     Bref=[-1 1 0
-          -1 0 1];
+        -1 0 1];
     DF=[x(2,1)-x(1,1) x(3,1)-x(1,1)
         x(2,2)-x(1,2) x(3,2)-x(1,2)];
     DFiT=[x(3,2)-x(1,2) x(1,2)-x(2,2)
-          x(1,1)-x(3,1) x(2,1)-x(1,1)];
+        x(1,1)-x(3,1) x(2,1)-x(1,1)];
     DFiT=DFiT/det(DF);
     B=DFiT*Bref;
     BEeps=[B(1,1)  0  B(1,2)  0  B(1,3)  0
-             0   B(2,1)  0  B(2,2)  0  B(2,3)
-           reshape([B(2,:); B(1,:)],1,6)];
+        0   B(2,1)  0  B(2,2)  0  B(2,3)
+        reshape([B(2,:); B(1,:)],1,6)];
     CE=reshape(MATERIALS(i,:),3,3);
     A_local=BEeps'*CE*BEeps*AREAS(i);
     indices=reshape([ELEMENTS(i,:)*2-1; ELEMENTS(i,:)*2],1,6);
     A(indices,indices)=A(indices,indices)+A_local;
     % add local rhs
-%     FE=F(ELEMENTS(i,:),:)';
-%     b_local=FE(:)*AREAS(i);
-%     b(indices)=b(indices)+b_local;
+    %     FE=F(ELEMENTS(i,:),:)';
+    %     b_local=FE(:)*AREAS(i);
+    %     b(indices)=b(indices)+b_local;
 end
 
 %% RHS vectorized
