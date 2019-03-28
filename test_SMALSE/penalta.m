@@ -11,7 +11,7 @@ d_vec=zeros(max_it,1);
 c=-d_min*ones(size(B,1),1);
 B=0*B;
 B_old=B;
-
+l_vypis=0;
 for i=1:max_it
     u=u-(A+rho*H_P)\(A*u+rho*grad_P-b);
     B=B_func(u);
@@ -38,7 +38,7 @@ for i=1:max_it
         break;
     end
     
-    fprintf('It. %d: Penalty= %d, norm(d)=%d, geometry difference =%d \n',i,rho,max(d(idx_on)),res_geom);
+    l_vypis = my_print(sprintf('It. %d: Penalty= %d, norm(d)=%d, geometry difference =%d \n',i,rho,max(d(idx_on)),res_geom),l_vypis );
     rho=rho*rho_step;
     u_old=u;
     B_old=B;

@@ -44,7 +44,7 @@ NBOUNDARY=[(1:(ny-1))' (2:ny)'];
 right_side=[(n_POINTS-ny:n_POINTS-1)' (n_POINTS-ny+1:n_POINTS)'];
 NBOUNDARY=[NBOUNDARY; right_side];
 NVALUE=[0*ones(size(NBOUNDARY,1),1) 0*ones(size(NBOUNDARY,1),1)];
-NVALUE(1:end/2,:)=-NVALUE(1:end/2,:);
+NVALUE(1:floor(end/2),:)=-NVALUE(1:floor(end/2),:);
 
 %% Neumann boundary at fracture sides
 % fracture 1
