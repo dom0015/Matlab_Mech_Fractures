@@ -1,4 +1,4 @@
-function [u] = SMALSE(F,b0,G,Q,c,idx_no_bounds,rel,rho0,betarho,Gama,maxiter_cg)
+function [u] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,maxiter_cg,update_G)
 % SMALSE  David
 % MPRGP
 % INPUTS -----------------------------------------------
@@ -24,14 +24,18 @@ VM=[];
 VCrit=[];
 
 c(idx_no_bounds) = -Inf*ones(length(idx_no_bounds),1);
+
+
 u=max(zeros(size(F,1),1),c);
+
 
 J = (u > c);
 rho = rho0* lFl;
 Gu=G*u;
 mi=zeros(size(G,1),1);  
 mi=mi+rho*Gu;
-b=b0-G'*mi;   
+b=b0-G'*mi;
+Q=G'*G;
 A=F+rho*Q; % A=P*F*P+rho*Q;
 lAl=rayleigh_est(A, 100,1e-2);
 alfa=1/lAl;
@@ -52,6 +56,14 @@ while (1)
     % Gradient splitting of g=-r, gf=gradient free(fi), gr=gradient free
     % reduced (fired), gc=gradient chopped or cut (beta), gp=gf+gc=projected grad.
     % previously used gr = min(lAl*J.*(u-c), gf);
+    
+    if nargin>=11
+        G=update_G(u); 
+        Q=G'*G;
+        A=F+rho*Q;
+        Gu=G*u;
+    end  
+    
     g = A*u - b;
     gf = J.*g;
     gc = min((~J).*g,0);
@@ -131,7 +143,7 @@ while (1)
         if (ncg>=maxiter_cg)
             break
         end
-    end
+    end  
     
     mi=mi+rho*Gu;
     VLag=[VLag Lag];
@@ -144,14 +156,16 @@ while (1)
     if Lag - Lag_old < Increment
         M = M/betarho;
     end
-
+    
     b=b0-G'*mi;
     nout = nout + 1;
+    
+    l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d\n',nout, ncg,Vgp(end),Vnarus(end)),l_vypis );
+    
     if (ncg>=maxiter_cg)
         fprintf('Maximum iterations reached.\n');
         break
     end
-    l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d\n',nout, ncg,Vgp(end)),l_vypis );
 end
 fprintf('Number of iterations: nout=%d ncg=%d ne=%d np=%d\n', nout, ncg, ne, np);
 figure; 
