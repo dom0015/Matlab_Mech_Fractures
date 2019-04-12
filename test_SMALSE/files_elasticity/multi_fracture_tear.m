@@ -1,4 +1,4 @@
-function [ node,elem,bdflag,fractures,fracture_matrice] = multi_fracture_tear( node,elem,fractures,bdflag,fracture_matrice)
+function [ node,elem,bdflag,fractures,fracture_matrice,Db] = multi_fracture_tear( node,elem,fractures,bdflag,fracture_matrice,Db)
 %ONE_FRACTURE_TEAR Summary of this function goes here
 %   Detailed explanation goes here
 m=length(fractures);
@@ -41,12 +41,17 @@ for fracture_id=1:m
     end
     node(nodes_map,:)=node;
     elem=nodes_map(elem);
+    
+
     [ fractures ] = remap_fracture_nodeid( fractures,nodes_map );
     %precislovat nody na trhlinach dle mapy
     for fid=1:m
         fracture_matrice{fid}.under_nodes=nodes_map(fracture_matrice{fid}.under_nodes);
         fracture_matrice{fid}.above_nodes=nodes_map(fracture_matrice{fid}.above_nodes);
     end
+    
+    Db=[Db false(4,length(nodes_map)-length(Db))];
+    Db(:,nodes_map)=Db;
 end
 
 end

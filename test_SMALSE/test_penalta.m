@@ -1,5 +1,5 @@
 %%
-n_node=151; % 5*k+1;
+n_node=101; % 5*k+1;
 [A,b,B,geom] = SMALSE_precomp(n_node);
 
 d_eps=1e-9;

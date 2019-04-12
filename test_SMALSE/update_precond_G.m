@@ -11,4 +11,3 @@ G=@(x)B*C_inv(x(1:n))+R*x((n+1):end);
 Q=@(x)[Ct_inv(BtB*C_inv(x(1:n)))+Ct_inv(B'*R*x((n+1):end));R'*B*C_inv(x(1:n))+R'*R*x((n+1):end)];
 Gt=@(x)[Ct_inv(B'*x);R'*x];
 end
-
