@@ -1,5 +1,7 @@
+addpath(genpath('files_elasticity'))
+
 %% PARAMETERS -------------------------------------------------------------
-Nxy=601;
+Nxy=201;
 sumbdomains_FETI=ceil(Nxy/16)^2;
 L1=1; L2=1;
 frac_start_end={[0.2 0.4], [0.8 0.4]
@@ -42,7 +44,7 @@ D_bound(1,Dirichlet_boundaries(1,:))=true;
 u_0(2,Dirichlet_boundaries(1,:))=0;
 u_0(1,Dirichlet_boundaries(1,:))=0;
 D_bound(2,Dirichlet_boundaries(3,:))=true;
-u_0(2,Dirichlet_boundaries(3,:))=0.2;
+u_0(2,Dirichlet_boundaries(3,:))=0.05;
 D_bound=D_bound(:);
 u_0=u_0(:);
 N_bound=0*Neumann_boundaries;
