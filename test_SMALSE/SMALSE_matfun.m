@@ -1,4 +1,4 @@
-function [u] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,maxiter_cg,update_G)
+function [u] = SMALSE_matfun(F,n,m,b0,c,idx_no_bounds,rel,rho0,betarho,Gama,maxiter_cg,update_G)
 % SMALSE  David
 % MPRGP
 % INPUTS -----------------------------------------------
@@ -7,7 +7,8 @@ function [u] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,maxiter_cg,up
 % G -
 %-------------------------------------------------------
 
-lFl=rayleigh_est(F, 100,1e-2);
+[G,Gt,Q]=update_G(0*b0); 
+lFl=rayleigh_est_func(F,n+m, 100,1e-2);
 
 epsr = rel*norm(b0);
 
@@ -26,22 +27,22 @@ VCrit=[];
 c(idx_no_bounds) = -Inf*ones(length(idx_no_bounds),1);
 
 
-u=max(zeros(size(F,1),1),c);
+u=max(zeros(n+m,1),c);
 
 
 J = (u > c);
 rho = rho0* lFl;
-Gu=G*u;
+%rho=200;
+Gu=G(u);
 mi=zeros(size(G,1),1);  
 mi=mi+rho*Gu;
-b=b0-G'*mi;
-Q=G'*G;
-A=F+rho*Q; % A=P*F*P+rho*Q;
-lAl=rayleigh_est(A, 100,1e-2);
+b=b0-Gt(mi);
+A=@(x)F(x)+rho*Q(x); % A=P*F*P+rho*Q;
+lAl=rayleigh_est_func(A,n+m, 100,1e-2);
 alfa=1/lAl;
 M=10*lAl;
 
-Lag=0.5*u'*A*u-b'*u;
+Lag=0.5*u'*A(u)-b'*u;
 gp=ones(length(u),1);
 norm_b0=norm(b0);
 
@@ -57,19 +58,18 @@ while (1)
     % reduced (fired), gc=gradient chopped or cut (beta), gp=gf+gc=projected grad.
     % previously used gr = min(lAl*J.*(u-c), gf);
     
-    if nargin>=11
-        G=update_G(u); 
-        Q=G'*G;
-        A=F+rho*Q;
-    end  
+%     if nargin>=11
+%         [G,Gt,Q]=update_G(u); 
+%         A=@(x)F(x)+rho*Q(x);
+%     end  
     
-    g = A*u - b;
+    g = A(u) - b;
     gf = J.*g;
     gc = min((~J).*g,0);
     gr = min(J.*(u-c)/alfa, gf);
     gp = gf + gc;
     p=gf;
-    Gu=G*u;
+    Gu=G(u);
     
     while (1)
         crit=min(M*norm(Gu),norm_b0);
@@ -80,7 +80,7 @@ while (1)
         
         if gc'*gc <= Gama^2*gr'*gf
             % Proportional iteration. Trial conjugate gradient step.
-            Ap=A*p;
+            Ap=A(p);
             rtp=g'*p;
             pAp=p'*Ap;
             acg=rtp/pAp;
@@ -112,7 +112,7 @@ while (1)
                 %expansion step
                 u=max(u-alfa*gr,c);
                 J=(u>c);
-                g=A*u-b;
+                g=A(u)-b;
                 gf = J.*g;
                 gc = min((~J).*g,0);
                 gr = min(lAl*J.*(u-c), gf);
@@ -122,7 +122,7 @@ while (1)
             end
         else
             %Proportioning step
-            Ap=A*gc;
+            Ap=A(gc);
             acg=(gc'*g)/(gc'*Ap);
             u=u-acg*gc;
             J=(u>c);
@@ -135,7 +135,7 @@ while (1)
             np=np+1;
         end
         
-        Gu=G*u;
+        Gu=G(u);
         VLagIn=[VLagIn 0.5*u'*(g-b)];
         Vnarus=[Vnarus norm(Gu)];
         Vgp=[Vgp norm(gp)];
@@ -148,7 +148,7 @@ while (1)
     VLag=[VLag Lag];
     VM=[VM M];
     Lag_old=Lag;
-    Lag=0.5*u'*A*u-b'*u;
+    Lag=0.5*u'*A(u)-b'*u;
     
     Increment=0.5*rho*crit^2;
     
@@ -156,7 +156,7 @@ while (1)
         M = M/betarho;
     end
     
-    b=b0-G'*mi;
+    b=b0-Gt(mi);
     nout = nout + 1;
     
     l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d\n',nout, ncg,Vgp(end),Vnarus(end)),l_vypis );

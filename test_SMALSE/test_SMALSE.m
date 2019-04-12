@@ -2,7 +2,7 @@
 % MPRGP
 
 %% inputs (from elesticity with fracture)
-n_node=81; % 5*k+1;
+n_node=101; % 5*k+1;
 [F,b0,G,geom] = SMALSE_precomp(n_node);
 
 [m,n]=size(G);
@@ -15,7 +15,7 @@ G=[G eye(m)];
 update_G=@(x)[geom.recalculate_B(x(idx_no_bounds)) eye(m)];
 %%
 
-rel=1.0e-8;
+rel=1.0e-10;
 rho0=1;
 betarho=1.1;
 Gama = 1;

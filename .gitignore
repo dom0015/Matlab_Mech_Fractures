@@ -12,3 +12,5 @@ penalty\.m~
 precomp_overlap\.m~
 
 *.m~
+
+*.mat
