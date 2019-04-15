@@ -1,8 +1,9 @@
-function [A,b]=elasticity_assembly(NODE,ELEM,MATERIAL,F,bdFlagNeuman,bdNeuman_val)
+function [A,b]=FEM_simple_fnc(NODE,ELEM,MATERIAL,F,bdFlag,bdNeumann_val)
 
 %MATERIAL 2 columns - lambda mu
 %F - source - 2 columns
-%%
+%bdFlagNeumann - true/false - n_ELEM rows, 3 columns
+%bdNeuman_val - 2 x (n_ELEM rows, 3 columns)
 
 material_lambda=MATERIAL(:,1);
 material_mu=MATERIAL(:,2);
@@ -13,8 +14,8 @@ n_NODE=size(NODE,1);
 n_ELEM=size(ELEM,1);
 
 %% boundary conditions inputs
-NBOUNDARY=[];
-NVALUE=[];
+bdNeumann_x=bdNeumann_val{1};
+bdNeumann_y=bdNeumann_val{2};
 
 %% other input data
 
@@ -34,16 +35,16 @@ for i=1:n_ELEM
     % add local "stiffness" matrix
     x=NODE(ELEM(i,:),:);
     Bref=[-1 1 0
-        -1 0 1];
+          -1 0 1];
     DF=[x(2,1)-x(1,1) x(3,1)-x(1,1)
         x(2,2)-x(1,2) x(3,2)-x(1,2)];
     DFiT=[x(3,2)-x(1,2) x(1,2)-x(2,2)
-        x(1,1)-x(3,1) x(2,1)-x(1,1)];
+          x(1,1)-x(3,1) x(2,1)-x(1,1)];
     DFiT=DFiT/det(DF);
     B=DFiT*Bref;
     BEeps=[B(1,1)  0  B(1,2)  0  B(1,3)  0
-        0   B(2,1)  0  B(2,2)  0  B(2,3)
-        reshape([B(2,:); B(1,:)],1,6)];
+             0   B(2,1)  0  B(2,2)  0  B(2,3)
+           reshape([B(2,:); B(1,:)],1,6)];
     CE=reshape(MATERIALS(i,:),3,3);
     A_local=BEeps'*CE*BEeps*AREAS(i);
     indices=reshape([ELEM(i,:)*2-1; ELEM(i,:)*2],1,6);
@@ -71,26 +72,19 @@ b=zeros(2*n_NODE,1);
 b(1:2:end)=bx;
 b(2:2:end)=by;
 
-bdFlag=bdFlagNeuman;
-bdNeumann_x=bdNeuman_val{1};
-bdNeumann_y=bdNeuman_val{2};
 %% modifications due to boundary conditions
 ELEM_Neuman_idx=find(sum(bdFlag,2)>0);
 for i=ELEM_Neuman_idx'
     for j=1:3
-        if(bdFlag(i,j)>0)
-            el=ELEM(i,setdiff([1 2 3],j));
-            x=NODE(el,:);
-            len=norm(x(1,:)-x(2,:));
-            val_x=bdNeumann_x(i,j);
-            val_y=bdNeumann_y(i,j);
-            b(el*2-1)=b(el*2-1)+len*val_x/2;
-            b(el*2)=b(el*2)+len*val_y/2;
-        end
+        el=ELEM(i,setdiff([1 2 3],j));
+        x=NODE(el,:);
+        len=norm(x(1,:)-x(2,:));
+        val_x=bdNeumann_x(i,j);
+        val_y=bdNeumann_y(i,j);
+        b(el*2-1)=b(el*2-1)+len*val_x/2;
+        b(el*2)=b(el*2)+len*val_y/2;
     end
 end
-
-%% modifications due to boundary conditions
 % u=zeros(n_NODE*2,1);
 % u(DBOUNDARY)=DVALUE;
 % b=b-A*u;
@@ -100,7 +94,7 @@ end
 %     b(NBOUNDARY(i,:)*2-1)=b(NBOUNDARY(i,:)*2-1)+len*NVALUE(i,1)/2;
 %     b(NBOUNDARY(i,:)*2)=b(NBOUNDARY(i,:)*2)+len*NVALUE(i,2)/2;
 % end
-%
+% 
 % %% solution of the resulting linear system and visualization
 % u(FREENODE)=A(FREENODE,FREENODE)\b(FREENODE);
 % figure; triplot(ELEM,coords1,coords2,'g');

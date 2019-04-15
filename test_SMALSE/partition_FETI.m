@@ -1,4 +1,4 @@
-function [map,sub_nodes,sub_elem,sub_material_constants,sub_volume_force,sub_boundary,sub_boundary_val,sub_sizes,glueB,node_map_on_double]=partition_FETI(nodes,elems,material_constants,volume_force,Neumann_boundaries,N_bound_value,partitions)
+function [map,sub_nodes,sub_elem,sub_material_constants,sub_volume_force,sub_boundary,sub_boundary_val,sub_sizes,glueB,node_map_on_double,plot_func]=partition_FETI(nodes,elems,material_constants,volume_force,Neumann_boundaries,N_bound_value,partitions)
 
 n=length(nodes);
 m=length(elems);
@@ -15,11 +15,13 @@ fprintf('edgecut=%d\n',edgecut);
 [sub_nodes,sub_elem,sub_material_constants,sub_volume_force,sub_boundary,sub_boundary_val,sub_sizes,glueB,node_map_on_double]=subdomains_geometry(nodes,elems,material_constants,volume_force,Neumann_boundaries,N_bound_value,map,n_aff);
 
 %% plotting ---------------------------------------------------------------
-my_trisurf(nodes,elems,map);
-hold on
-idx_n=sum(n_aff,2)>1;
-plot(nodes(idx_n,1),nodes(idx_n,2),'k.','MarkerSize',10)
-plot(nodes(idx_n,1),nodes(idx_n,2),'w.','MarkerSize',1)
+% my_trisurf(nodes,elems,map);
+% hold on
+% idx_n=sum(n_aff,2)>1;
+% plot(nodes(idx_n,1),nodes(idx_n,2),'k.','MarkerSize',10)
+% plot(nodes(idx_n,1),nodes(idx_n,2),'w.','MarkerSize',1)
+
+plot_func=@(x)my_trisurf2(x,nodes,elems,map,n_aff);
 end
 
 %%
@@ -163,4 +165,51 @@ col=hsv2rgb([H' S' V']);
 colormap(col)
 axis equal
 view(0,90)
+end
+
+function [fig_id]=my_trisurf2(x_full,nodes,elems,map,n_aff)
+
+fig_id=figure;
+nodes=reshape(x_full,2,length(nodes))'+nodes;
+p=nodes';
+t=elems';
+x=p(1,:);
+y=p(2,:);
+P=[x(t(:));y(t(:))];
+T=reshape(1:size(P,2),[3 size(P,2)/3]);
+% create random u for testing
+tmp=-[map;map;map]/max(map);
+% 
+% 
+% h1=trisurf(T',P(1,:),P(2,:),tmp(:));
+% h1.EdgeAlpha = 0.75;
+% h1.FaceColor='none';
+% hold on
+
+h=trisurf(T',P(1,:),P(2,:),tmp(:));
+h.EdgeColor = 'none';
+h.FaceAlpha=0.5;
+colormap HSV(1000)
+colors=max(map)+1;
+t_s=[0.7 1];
+S=t_s(mod(0:colors-1,2)+1);
+t_v=[0.85 0.85 1 1];
+V=t_v(mod(0:colors-1,4)+1);
+colors_corr=ceil(colors/1);
+t_h=linspace(0,1-1/colors_corr,colors_corr);
+t_h=t_h(floor((0:colors-1)/1)+1);
+[~,idx]=sort(rand(colors,1));
+H=t_h(idx);
+V=V(idx);
+S=S(idx);
+col=hsv2rgb([H' S' V']);
+colormap(col)
+axis equal
+view(0,90)
+
+hold on
+
+
+idx_n=sum(n_aff,2)>1;
+plot(nodes(idx_n,1),nodes(idx_n,2),'k.','MarkerSize',1)
 end
