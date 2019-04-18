@@ -1,4 +1,4 @@
-function [u] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,maxiter_cg,update_G)
+function [u] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,maxiter_cg,update_G,u0)
 % SMALSE  David
 % MPRGP
 % INPUTS -----------------------------------------------
@@ -25,8 +25,10 @@ VCrit=[];
 
 c(idx_no_bounds) = -Inf*ones(length(idx_no_bounds),1);
 
-
-u=max(zeros(size(F,1),1),c);
+if nargin<12
+    u0=zeros(length(c),1);
+end
+u=max(u0,c);
 
 
 J = (u > c);
@@ -58,9 +60,11 @@ while (1)
     % previously used gr = min(lAl*J.*(u-c), gf);
     
     if nargin>=11
-        G=update_G(u); 
-        Q=G'*G;
-        A=F+rho*Q;
+        if ~isempty(update_G)
+            G=update_G(u); 
+            Q=G'*G;
+            A=F+rho*Q;
+        end
     end  
     
     g = A*u - b;

@@ -9,8 +9,11 @@ for i=1:m
     B_orht(i,:)=B(i,:)/norm(B(i,:));
     for j=1:i-1
         if skip_idx(j)
-            disp(dot(B_orht(i,:),B_orht(j,:)))
-            B_orht(i,:)=B_orht(i,:)-dot(B_orht(i,:),B_orht(j,:))*B_orht(j,:);
+            %disp(dot(B_orht(i,:),B_orht(j,:)))
+            dot_ij=dot(B_orht(i,:),B_orht(j,:));
+            if dot_ij~=0
+                B_orht(i,:)=B_orht(i,:)-dot_ij*B_orht(j,:);
+            end
         end
     end
     n_b=norm(B_orht(i,:));
