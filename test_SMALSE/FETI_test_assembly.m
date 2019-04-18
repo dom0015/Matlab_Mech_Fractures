@@ -31,8 +31,9 @@ N_bound_value=cell(2,1);
 tmp_nx=Neumann_normalx;
 tmp_ny=Neumann_normaly;
 
-[tmp_nx,tmp_ny] = fracture_boundary_values(fracture_elem_map{1},tmp_nx,tmp_ny,@(x)0*x,@(x)sin(pi*x));
-
+for i=1:length(fracture_elem_map)
+    [tmp_nx,tmp_ny] = fracture_boundary_values(fracture_elem_map{i},tmp_nx,tmp_ny,@(x)0.05+0*x,@(x)0.05+0*x);
+end
 N_bound_value{1}=tmp_nx;
 N_bound_value{2}=tmp_ny;
 
