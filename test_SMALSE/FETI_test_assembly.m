@@ -1,14 +1,5 @@
 addpath(genpath('files_elasticity'))
 
-%% PARAMETERS -------------------------------------------------------------
-Nxy=101;
-L1=1; L2=1;
-sumbdomains_FETI=ceil(Nxy/10)^2;
-frac_start_end={[0.1 0.5], [0.9 0.5]};
-%     [0.2 0.5], [0.8 0.5]
-%     [0.2 0.9], [0.8 0.9]
-%     [0.2 0.1], [0.8 0.1]};
-
 %% BASIC GEOMETRY ---------------------------------------------------------
 [POINTS,ELEMENTS,Dirichlet_boundaries,Neumann_boundaries,Neumann_normalx,Neumann_normaly,fractures,...
     fractures_positions,no_intersections,fractures_cell,fracture_matrice,fracture_elem_map] = ...
@@ -40,7 +31,7 @@ N_bound_value=cell(2,1);
 tmp_nx=Neumann_normalx;
 tmp_ny=Neumann_normaly;
 
-[tmp_nx,tmp_ny] = fracture_boundary_values(fracture_elem_map{1},tmp_nx,tmp_ny,@(x)sin(pi*x),@(x)0*x);
+[tmp_nx,tmp_ny] = fracture_boundary_values(fracture_elem_map{1},tmp_nx,tmp_ny,@(x)0*x,@(x)sin(pi*x));
 
 N_bound_value{1}=tmp_nx;
 N_bound_value{2}=tmp_ny;
@@ -77,20 +68,24 @@ b=cat(1,b{:});
 A_plus = blkdiag(A_pinv{:});
 R = blkdiag(A_null{:});
 B_e=[B_dirichlet;B_FETI];
-B_i = contact_inequalities(0*b_full,POINTS,fracture_matrice,node_map_on,size(A,1));
+B_i = contact_inequalities(0*b,POINTS,fracture_matrice,node_map_on,size(A,1));
 c_e=[B_dirichlet_rhs;zeros(size(B_FETI,1),1)];
 c_i=zeros(size(B_i,1),1);
 
+B_iupdate =@(x) contact_inequalities(x,POINTS,fracture_matrice,node_map_on,size(A,1));
 
 A_full=[A B_e';B_e sparse(size(B_e,1),size(B_e,1))];
-b_full=[b;B_rhs];
+b_full=[b;c_e];
 
 
 
-B_iupdate =@(x) contact_inequalities(x,POINTS,fracture_matrice,node_map_on,size(A,1));
+
 
 tic;
 x_full=A_full\b_full;
 toc
+
+B_i=B_iupdate(x_full);
+
 %%
 plot_func(x_full,fracture_matrice);

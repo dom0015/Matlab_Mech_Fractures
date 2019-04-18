@@ -53,7 +53,7 @@ bdNeumann_x(bdFlag==2)=0.2;
 bdNeumann_x(bdFlag==3)=0;
 bdNeumann_x(bdFlag==4)=0;
 bdNeumann_y=double(0*bdFlag);
-bdNeumann_y(bdFlag==3)=0;
+bdNeumann_y(bdFlag==3)=0.2;
 bdNeumann_y(bdFlag==4)=0;
 bdNeumann_val={bdNeumann_x,bdNeumann_y};
 
@@ -71,12 +71,25 @@ bdNeumann_val={bdNeumann_x,bdNeumann_y};
 % temp(logical(side_up_y))=1.0;
 % DVALUE=temp(DBOUNDARY);
 %% Dirichlet vlevo a dole
+nahore=(NODE(:,2)==width)'; side_up_y=[nahore*0; nahore]; side_up_y=side_up_y(:);
 vlevo=(NODE(:,1)==0)'; side_left_x=[vlevo; 0*vlevo]; side_left_x=side_left_x(:);
 dole=(NODE(:,2)==0)'; side_down_y=[0*dole; dole]; side_down_y=side_down_y(:);
+%vpravo=(NODE(:,1)==width)'; side_right_x=[vpravo; 0*vpravo]; side_right_x=side_right_x(:);
+
+% right
 DBOUNDARY=side_left_x|side_down_y;
 temp=zeros(length(DBOUNDARY),1);
 temp(logical(side_left_x))=0.0;
 temp(logical(side_down_y))=0.0;
+%temp(logical(side_right_x))=-0.1;
+
+% up
+% DBOUNDARY=side_left_x|side_down_y|side_up_y;
+% temp=zeros(length(DBOUNDARY),1);
+% temp(logical(side_left_x))=0.0;
+% temp(logical(side_down_y))=0.0;
+% temp(logical(side_up_y))=-0.1;
+
 DVALUE=temp(DBOUNDARY);
 FREENODE=true(n_NODE*2,1); FREENODE(DBOUNDARY)=false;
 
@@ -100,5 +113,5 @@ b=b-A*u;
 %% solution of the resulting linear system and visualization
 u(FREENODE)=A(FREENODE,FREENODE)\b(FREENODE);
 coords1=NODE(:,1); coords2=NODE(:,2);
-figure; triplot(ELEM,coords1,coords2,'g');
+%hold on; triplot(ELEM,coords1,coords2,'g');
 hold on; triplot(ELEM,coords1+u(1:2:end),coords2+u(2:2:end),'b');

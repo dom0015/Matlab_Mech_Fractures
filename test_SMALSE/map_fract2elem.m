@@ -1,4 +1,4 @@
-function [frac_bdflag,frac_normx,frac_normy] = map_fract2elem(points,elem,fracture_matrice)
+function [frac_bdflag,frac_normx,frac_normy,fracture_elem_map] = map_fract2elem(points,elem,fracture_matrice)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 n=max(elem(:));
@@ -10,7 +10,7 @@ frac_bdflag=elem*0;
 frac_normx=elem*0;
 frac_normy=elem*0;
 
-
+fracture_elem_map=cell(length(fracture_matrice),1);
 for i=1:length(fracture_matrice)
     tmp=fracture_matrice{i};
     
@@ -37,6 +37,9 @@ for i=1:length(fracture_matrice)
     frac_normx((kk-1)*m+jj)=norm_up(:,1);
     frac_normy((kk-1)*m+jj)=norm_up(:,2);
     
+    tmp_frac_elem_map.upi=jj;
+    tmp_frac_elem_map.upj=kk;
+    
     frac_spmat=sparse([1:mm,1:mm],tmp.under_nodes(:),ones(2*mm,1),mm,n);
     
     [i1,j1,~]=find(frac_spmat*elem_matrix1>1);
@@ -52,7 +55,9 @@ for i=1:length(fracture_matrice)
     frac_bdflag((kk-1)*m+jj)=-i-0.5;
     frac_normx((kk-1)*m+jj)=norm_down(:,1);
     frac_normy((kk-1)*m+jj)=norm_down(:,2);
-    
+    tmp_frac_elem_map.downi=jj;
+    tmp_frac_elem_map.downj=kk;
+    fracture_elem_map{i}=tmp_frac_elem_map;
 end
 
 end

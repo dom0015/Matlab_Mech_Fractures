@@ -79,7 +79,7 @@ ELEM_Neuman_idx=find(sum(bdFlag,2)>0);
 for i=ELEM_Neuman_idx'
     for j=1:3
         if(bdFlag(i,j)>0)
-            el=ELEM(i,setdiff([1 2 3],j));
+            el=ELEM(i,setdiff([1 2 3],mod(j+1,3)+1));
             x=NODE(el,:);
             len=norm(x(1,:)-x(2,:));
             val_x=bdNeumann_x(i,j);
