@@ -58,7 +58,7 @@ for i=1:sumbdomains_FETI
     [ATemp,b{i}]=elasticity_assembly(sub_nodes{i},sub_elem{i},...
         sub_material_constants{i},sub_volume_force{i},...
         sub_neumann{i},sub_neumann_val{i});
-    [APinvTemp,AKerTemp] = pinv_null(ATemp,1e-12);
+    [APinvTemp,AKerTemp] = pinv_null(ATemp,1e2);
     A_pinv{i}=sparse(APinvTemp);
     A_null{i}=sparse(AKerTemp);
     A{i}=sparse(ATemp);

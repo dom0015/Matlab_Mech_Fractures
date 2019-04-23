@@ -28,7 +28,7 @@ c(idx_no_bounds) = -Inf*ones(length(idx_no_bounds),1);
 if nargin<12
     u0=zeros(length(c),1);
 end
-u=max(u0,c);
+u=max(u0,c+eps);
 
 
 J = (u > c);

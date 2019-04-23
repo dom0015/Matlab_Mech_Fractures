@@ -17,6 +17,7 @@ function [A_pinv,Z] = pinv_null(A,tol)
 
 [U_orig,S_orig,V_orig] = svd(A,'econ');
 s_orig = diag(S_orig);
+tol=min(abs(s_orig))*tol;
 r1 = sum(s_orig > tol);
 V=V_orig(:,1:r1);
 U=U_orig(:,1:r1);

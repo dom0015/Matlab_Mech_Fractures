@@ -5,7 +5,7 @@ addpath(genpath('files_elasticity'))
     fractures_positions,no_intersections,fractures_cell,fracture_matrice,fracture_elem_map] = ...
     create_geometry(Nxy,L1,L2,frac_start_end);
 
-material_constants=ones(length(ELEMENTS),2);
+material_constants=100000*ones(length(ELEMENTS),2);
 volume_force=zeros(length(ELEMENTS),2);
 %% Boundary condition specification ---------------------------------------
 u_0=zeros(2,length(POINTS));
@@ -23,16 +23,19 @@ u_0(2,Dirichlet_boundaries(3,:))=0;
 D_bound=D_bound(:);
 u_0=u_0(:);
 N_bound=0*Neumann_boundaries;
-%N_bound(Neumann_boundaries==3)=1;
-%N_bound(Neumann_boundaries==2)=1;
+% N_bound(Neumann_boundaries==3)=1;
+% N_bound(Neumann_boundaries==2)=1;
+
 N_bound(Neumann_boundaries<0)=1;
+%N_bound(Neumann_boundaries==-1.5)=1;
+
 N_bound_value=cell(2,1);
 
 tmp_nx=Neumann_normalx;
 tmp_ny=Neumann_normaly;
 
 for i=1:length(fracture_elem_map)
-    [tmp_nx,tmp_ny] = fracture_boundary_values(fracture_elem_map{i},tmp_nx,tmp_ny,@(x)0.05+0*x,@(x)0.05+0*x);
+    [tmp_nx,tmp_ny] = fracture_boundary_values(fracture_elem_map{i},tmp_nx,tmp_ny,@(x)101*(1-4*(x-0.5).^2),@(x)101*(1-4*(x-0.5).^2));
 end
 N_bound_value{1}=tmp_nx;
 N_bound_value{2}=tmp_ny;
@@ -50,7 +53,7 @@ for i=1:sumbdomains_FETI
     [ATemp,b{i}]=elasticity_assembly(sub_nodes{i},sub_elem{i},...
         sub_material_constants{i},sub_volume_force{i},...
         sub_neumann{i},sub_neumann_val{i});
-    [APinvTemp,AKerTemp] = pinv_null(ATemp,1e-12);
+    [APinvTemp,AKerTemp] = pinv_null(ATemp,100);
     A_pinv{i}=sparse(APinvTemp);
     A_null{i}=sparse(AKerTemp);
     A{i}=sparse(ATemp);
@@ -75,12 +78,23 @@ c_i=zeros(size(B_i,1),1);
 
 B_iupdate =@(x) contact_inequalities(x,POINTS,fracture_matrice,node_map_on,size(A,1));
 
-A_full=[A B_e';B_e sparse(size(B_e,1),size(B_e,1))];
-b_full=[b;c_e];
+rho=1e6;
+n1=size(B_e,1);
+n2=size(B_i,1);
+O_e=sparse(n1,n1);
+I_i=speye(n2,n2);
+O_ie=sparse(n1,n2);
+
+A_full=[A       B_e'    rho*B_i';...
+        B_e    O_e     O_ie;
+        rho*B_i O_ie'    -I_i];
+
+
+b_full=[b;c_e;c_i];
 
 
 
-
+%[x,flag,relres,iter,resvec] = gmres(A_full,b_full,100,1e-6,100);
 
 tic;
 x_full=A_full\b_full;
