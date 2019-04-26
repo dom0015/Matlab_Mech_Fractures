@@ -49,9 +49,10 @@ for fracture_id=1:m
         fracture_matrice{fid}.under_nodes=nodes_map(fracture_matrice{fid}.under_nodes);
         fracture_matrice{fid}.above_nodes=nodes_map(fracture_matrice{fid}.above_nodes);
     end
-    
+    if nargin==6
     Db=[Db false(4,length(nodes_map)-length(Db))];
     Db(:,nodes_map)=Db;
+    end
 end
 
 end

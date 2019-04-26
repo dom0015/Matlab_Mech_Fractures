@@ -9,7 +9,7 @@ for i=1:it
     rayl_c=dot(x_old,x);
     x_old=x/norm(x);
     if(norm(rayl_c_old-rayl_c)<epsr)
-        fprintf('Converged: it %d precision %d\n',i,norm(rayl_c_old-rayl_c));
+        fprintf('Converged: it %d precision %d, value = %d\n',i,norm(rayl_c_old-rayl_c),rayl_c);
         break;
     end
     if i==it 
@@ -18,6 +18,6 @@ for i=1:it
     rayl_c_old=rayl_c;
 end
 if i==it
-    fprintf('Maximum iterations reached: it %d precision %d\n',i,norm(rayl_c_old-rayl_c));
+    fprintf('Maximum iterations reached: it %d precision %d, value = %d\n',i,norm(rayl_c_old-rayl_c),rayl_c);
 end
 end

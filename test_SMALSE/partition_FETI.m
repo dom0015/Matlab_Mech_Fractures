@@ -122,6 +122,7 @@ end
 
 %%
 function [fig_id]=my_trisurf2(x_full,nodes,elems,map,n_aff,fracture_matrice,node_map_on_double)
+rng(0)
 x_full=x_full(node_map_on_double);
 fig_id=figure;
 nodes=reshape(x_full,2,length(nodes))'+nodes;

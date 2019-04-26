@@ -5,7 +5,7 @@ addpath(genpath('files_elasticity'))
     fractures_positions,no_intersections,fractures_cell,fracture_matrice,fracture_elem_map] = ...
     create_geometry(Nxy,L1,L2,frac_start_end);
 
-material_constants=100000*ones(length(ELEMENTS),2);
+material_constants=mat_const*ones(length(ELEMENTS),2);
 volume_force=zeros(length(ELEMENTS),2);
 %% Boundary condition specification ---------------------------------------
 u_0=zeros(2,length(POINTS));
@@ -35,7 +35,7 @@ tmp_nx=Neumann_normalx;
 tmp_ny=Neumann_normaly;
 
 for i=1:length(fracture_elem_map)
-    [tmp_nx,tmp_ny] = fracture_boundary_values(fracture_elem_map{i},tmp_nx,tmp_ny,@(x)101*(1-4*(x-0.5).^2),@(x)101*(1-4*(x-0.5).^2));
+    [tmp_nx,tmp_ny] = fracture_boundary_values(fracture_elem_map{i},tmp_nx,tmp_ny,frac_press{i,1},frac_press{i,2});
 end
 N_bound_value{1}=tmp_nx;
 N_bound_value{2}=tmp_ny;
@@ -78,7 +78,7 @@ c_i=zeros(size(B_i,1),1);
 
 B_iupdate =@(x) contact_inequalities(x,POINTS,fracture_matrice,node_map_on,size(A,1));
 
-rho=1e6;
+rho=1e3;
 n1=size(B_e,1);
 n2=size(B_i,1);
 O_e=sparse(n1,n1);
@@ -91,16 +91,16 @@ A_full=[A       B_e'    rho*B_i';...
 
 
 b_full=[b;c_e;c_i];
-
-
-
-%[x,flag,relres,iter,resvec] = gmres(A_full,b_full,100,1e-6,100);
-
+% 
+% 
+% 
+% %[x,flag,relres,iter,resvec] = gmres(A_full,b_full,100,1e-6,100);
+% 
 tic;
 x_full=A_full\b_full;
 toc
-
-B_i=B_iupdate(x_full);
-
-%%
-plot_func(x_full,fracture_matrice);
+% 
+% B_i=B_iupdate(x_full);
+% 
+% %%
+% plot_func(x_full,fracture_matrice);

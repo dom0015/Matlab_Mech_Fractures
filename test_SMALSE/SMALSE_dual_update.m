@@ -1,4 +1,4 @@
-function [u] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg)
+function [u] = SMALSE_dual_update(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,maxiter_cg,update_G,u0)
 % SMALSE  David
 % MPRGP
 % INPUTS -----------------------------------------------
@@ -25,9 +25,9 @@ VCrit=[];
 
 c(idx_no_bounds) = -Inf*ones(length(idx_no_bounds),1);
 
-
+if nargin<12
     u0=zeros(length(c),1);
-
+end
 u=max(u0,c+eps);
 
 
@@ -41,7 +41,7 @@ Q=G'*G;
 A=F+rho*Q; % A=P*F*P+rho*Q;
 lAl=rayleigh_est(A, 100,1e-2);
 alfa=1/lAl;
-M=M_start*lAl;
+M=1e-4*lAl;
 
 Lag=0.5*u'*A*u-b'*u;
 gp=ones(length(u),1);
@@ -58,14 +58,6 @@ while (1)
     % Gradient splitting of g=-r, gf=gradient free(fi), gr=gradient free
     % reduced (fired), gc=gradient chopped or cut (beta), gp=gf+gc=projected grad.
     % previously used gr = min(lAl*J.*(u-c), gf);
-    
-%     if nargin>=11
-%         if ~isempty(update_G)
-%             G=update_G(u); 
-%             Q=G'*G;
-%             A=F+rho*Q;
-%         end
-%     end  
     
     g = A*u - b;
     gf = J.*g;
@@ -157,14 +149,30 @@ while (1)
     Increment=0.5*rho*crit^2;
     
     if Lag - Lag_old < Increment
-        M = M/betarho;
+        % M = M/betarho;
+        rho=rho*betarho;
+        if nargin>=11
+            if ~isempty(update_G)
+                [F,b0,G,c] = update_G(u);
+                u=max(u,c);
+                J = (u > c);
+                Gu=G*u;
+                Q=G'*G;
+                %mi=zeros(size(G,1),1);
+                %mi=mi+rho*Gu;
+            end
+        end    
+        A=F+rho*Q;
+        lAl=rayleigh_est(A, 100,1e-2);
+        alfa=1/lAl;
     end
     
     b=b0-G'*mi;
     nout = nout + 1;
-    
-    l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d\n',nout, ncg,Vgp(end),Vnarus(end)),l_vypis );
-    
+    if ~isempty(Vgp)
+    %l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d\n',nout, ncg,Vgp(end),Vnarus(end)),l_vypis );
+    fprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d\n',nout, ncg,Vgp(end),Vnarus(end))
+    end
     if (ncg>=maxiter_cg)
         fprintf('Maximum iterations reached.\n');
         break

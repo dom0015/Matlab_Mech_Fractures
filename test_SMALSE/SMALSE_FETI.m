@@ -2,10 +2,10 @@
 Nxy=101;
 L1=1; L2=1;
 sumbdomains_FETI=ceil(Nxy/15)^2;
-frac_start_end={[0.8 0.1], [0.8 0.9]
-     [0.1 0.2], [0.9 0.2]
-     [0.1 0.1], [0.9 0.9]
-     [0.1 0.5], [0.9 0.5]};
+% frac_start_end={[0.8 0.1], [0.8 0.9]
+%      [0.1 0.2], [0.9 0.2]
+%      [0.1 0.1], [0.9 0.9]
+%      [0.1 0.5], [0.9 0.5]};
 
 
 % frac_start_end={[0.5 0.1], [0.5 0.9]
@@ -13,6 +13,13 @@ frac_start_end={[0.8 0.1], [0.8 0.9]
 %      [0.1 0.8], [0.9 0.8]
 %      [0.1 0.2], [0.9 0.2]
 %      [0.1 0.1], [0.9 0.9]};
+
+frac_start_end={[0.1 0.4], [0.9 0.4]
+     [0.3 0.5], [0.6 0.5]
+     [0.1 0.6], [0.9 0.6]};
+frac_press={@(x)1+0*x,@(x)1+0*x
+    @(x)2+0*x,@(x)2+0*x
+    @(x)1+0*x,@(x)1+0*x};
 FETI_test_assembly
 
 
@@ -119,8 +126,8 @@ x_elast=x_elast+R*alpha;
 % x_elast=x_elast+R*alpha_;
 % end
 
-
-plot_func(x_elast*1000,fracture_matrice);
+plot_func(x_elast,fracture_matrice);
+plot_func(x_elast*20,fracture_matrice);
 
 % B_i_onidx=lambda(idx_bounds)>0;
 % B_i_on=B_i(B_i_onidx,:);
