@@ -1,4 +1,4 @@
-function [A_pinv,Z] = pinv_null(A,tol)
+function [A_pinv,Z,max_S] = pinv_null(A,tol)
 %PINV   Pseudoinverse.
 %   X = PINV(A) produces a matrix X of the same dimensions
 %   as A' so that A*X*A = A, X*A*X = X and A*X and X*A
@@ -17,6 +17,7 @@ function [A_pinv,Z] = pinv_null(A,tol)
 
 [U_orig,S_orig,V_orig] = svd(A,'econ');
 s_orig = diag(S_orig);
+max_S=max(s_orig);
 tol=min(abs(s_orig))*tol;
 r1 = sum(s_orig > tol);
 V=V_orig(:,1:r1);

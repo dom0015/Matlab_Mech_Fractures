@@ -48,12 +48,13 @@ N_bound_value{2}=tmp_ny;
 A=cell(sumbdomains_FETI,1);
 A_pinv=cell(sumbdomains_FETI,1);
 A_null=cell(sumbdomains_FETI,1);
+singular_values=zeros(sumbdomains_FETI,1);
 b=cell(sumbdomains_FETI,1);
 for i=1:sumbdomains_FETI
     [ATemp,b{i}]=elasticity_assembly(sub_nodes{i},sub_elem{i},...
         sub_material_constants{i},sub_volume_force{i},...
         sub_neumann{i},sub_neumann_val{i});
-    [APinvTemp,AKerTemp] = pinv_null(ATemp,100);
+    [APinvTemp,AKerTemp,singular_values(i)] = pinv_null(ATemp,100);
     A_pinv{i}=sparse(APinvTemp);
     A_null{i}=sparse(AKerTemp);
     A{i}=sparse(ATemp);
@@ -67,8 +68,9 @@ B_dirichlet=sparse(1:num_dnodes,dirichlet_nodes_new,ones(num_dnodes,1),num_dnode
 B_dirichlet_rhs=u_0(dirichlet_nodes_old);
 
 %% Matrix assembly --------------------------------------------------------
-A=blkdiag(A{:});
-b=cat(1,b{:});
+mat_scale=max(singular_values);
+A=blkdiag(A{:})/mat_scale;
+b=cat(1,b{:})/mat_scale;
 A_plus = blkdiag(A_pinv{:});
 R = blkdiag(A_null{:});
 B_e=[B_dirichlet;B_FETI];
