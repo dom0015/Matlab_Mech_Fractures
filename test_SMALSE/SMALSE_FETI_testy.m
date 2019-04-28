@@ -1,5 +1,5 @@
 %% PARAMETERS -------------------------------------------------------------
-Nxy=401;
+Nxy=101;
 L1=1; L2=1;
 sumbdomains_FETI=ceil(Nxy/15)^2;
 
@@ -17,7 +17,7 @@ frac_start_end={[0.1 0.4], [0.9 0.4]
 frac_press={@(x)mat_const/5+0*x,@(x)mat_const/5+0*x
     @(x)2*mat_const/5+0*x,@(x)2*mat_const/5+0*x
     @(x)mat_const/5+0*x,@(x)mat_const/5+0*x};
-%FETI_test_assembly
+FETI_test_assembly
 
 % mat_const=100;
 % frac_start_end={[0.1 0.4], [0.9 0.4]
