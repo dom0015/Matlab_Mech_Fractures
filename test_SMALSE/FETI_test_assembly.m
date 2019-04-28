@@ -71,7 +71,7 @@ B_dirichlet_rhs=u_0(dirichlet_nodes_old);
 mat_scale=max(singular_values);
 A=blkdiag(A{:})/mat_scale;
 b=cat(1,b{:})/mat_scale;
-A_plus = blkdiag(A_pinv{:});
+A_plus = blkdiag(A_pinv{:})*mat_scale;
 R = blkdiag(A_null{:});
 B_e=[B_dirichlet;B_FETI];
 B_i = contact_inequalities(0*b,POINTS,fracture_matrice,node_map_on,size(A,1));
@@ -87,20 +87,20 @@ O_e=sparse(n1,n1);
 I_i=speye(n2,n2);
 O_ie=sparse(n1,n2);
 
-A_full=[A       B_e'    rho*B_i';...
-        B_e    O_e     O_ie;
-        rho*B_i O_ie'    -I_i];
-
-
-b_full=[b;c_e;c_i];
+% A_full=[A       B_e'    rho*B_i';...
+%         B_e    O_e     O_ie;
+%         rho*B_i O_ie'    -I_i];
+% 
+% 
+% b_full=[b;c_e;c_i];
 % 
 % 
 % 
 % %[x,flag,relres,iter,resvec] = gmres(A_full,b_full,100,1e-6,100);
 % 
-tic;
-x_full=A_full\b_full;
-toc
+% tic;
+% x_full=A_full\b_full;
+% toc
 % 
 % B_i=B_iupdate(x_full);
 % 

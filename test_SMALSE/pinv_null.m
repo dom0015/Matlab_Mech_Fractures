@@ -17,12 +17,13 @@ function [A_pinv,Z,max_S] = pinv_null(A,tol)
 
 [U_orig,S_orig,V_orig] = svd(A,'econ');
 s_orig = diag(S_orig);
-max_S=max(s_orig);
+
 tol=min(abs(s_orig))*tol;
 r1 = sum(s_orig > tol);
 V=V_orig(:,1:r1);
 U=U_orig(:,1:r1);
 s=s_orig(1:r1);
+max_S=max(s);
 s = 1./s(:);
 A_pinv = (V.*s.')*U';
 

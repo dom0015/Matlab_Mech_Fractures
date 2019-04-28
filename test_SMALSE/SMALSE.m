@@ -7,7 +7,7 @@ function [u] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxit
 % G -
 %-------------------------------------------------------
 
-lFl=rayleigh_est(F, 100,1e-2);
+lFl=rayleigh_est(F, 1000,1e-2);
 
 epsr = rel*norm(b0);
 
@@ -39,7 +39,7 @@ mi=mi+rho*Gu;
 b=b0-G'*mi;
 Q=G'*G;
 A=F+rho*Q; % A=P*F*P+rho*Q;
-lAl=rayleigh_est(A, 100,1e-2);
+lAl=rayleigh_est(A, 1000,1e-2);
 alfa=1/lAl;
 M=M_start*lAl;
 
@@ -157,7 +157,9 @@ while (1)
     Increment=0.5*rho*crit^2;
     
     if Lag - Lag_old < Increment
-        M = M/betarho;
+
+            M = M/betarho;
+
     end
     
     b=b0-G'*mi;
