@@ -4,9 +4,9 @@ L1=1; L2=1;
 sumbdomains_FETI=ceil(Nxy/15)^2;
 
 
-% mat_const=1;
+% mat_const=1000;
 % frac_start_end={[0.1 0.5], [0.9 0.5]};
-% frac_press={@(x)(-0.5+sin(5*pi*x)),@(x)0*x};
+% frac_press={@(x)2000*(-0.5+sin(5*pi*x)),@(x)0*x};
 % FETI_test_assembly
 
 
@@ -28,12 +28,12 @@ FETI_test_assembly
 %     @(x)1+0*x,@(x)1+0*x};
 % FETI_test_assembly
 
-
 B=[B_e;-B_i];
 c=[c_e;c_i];
 F=B*A_plus*B';
-d=B*A_plus*b;
 G=R'*B';
+d=B*A_plus*b;
+
 e=R'*b;
 
 lambda_ImGt=G'*((G*G')\(e));
@@ -43,16 +43,29 @@ c_ker=-lambda_ImGt;
 c_ker(idx_no_bounds)=0;
 
 
+
 %%
-rel=1.0e-8;
+
+rel=1.0e-10;
 rho0=1;
 betarho=1.001;
 Gama = 1;
-maxiter_cg = 10000;
-M_start=0.5;
-%%
+maxiter_cg = 3000;
+M_start=0.1;
+type='rho';
 
-[lambda_ker] = SMALSE(F,d-F*lambda_ImGt,G,c_ker,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg);
+[lambda_ker] = SMALSE(F,(d-F*lambda_ImGt),G,c_ker,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg,type);
+
+% %%
+% rel=1.0e-8;
+% rho0=2;
+% betarho=1.05;
+% Gama = 1;
+% maxiter_cg = 10000;
+% M_start=0.5;
+% %%
+% 
+% [lambda_ker] = SMALSE(F,d-F*lambda_ImGt,G,c_ker,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg,'M');
 
 lambda=lambda_ker+lambda_ImGt;
 
