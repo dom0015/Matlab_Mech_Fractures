@@ -1,4 +1,4 @@
-function [u,nout,ncg] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg,type)
+function [u,update_data,nout,ncg] = SMALSE_update(F,b0,G,c,update_G,update_data,idx_no_bounds,rel,tol_to_update,rho0,betarho,Gama,M_start,maxiter_cg,type,printres)
 % SMALSE  David
 % MPRGP
 % INPUTS -----------------------------------------------
@@ -7,11 +7,11 @@ function [u,nout,ncg] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,M_st
 % G -
 %-------------------------------------------------------
 Q=G'*G;
-lFl=eigs(F, 1);
-lQl=eigs(Q, 1);
+lFl_=eigs(F, 1);
+lQl_=eigs(Q, 1);
 
-F=F/lFl*lQl;
-b0=b0/lFl*lQl;
+F=F/lFl_*lQl_;
+b0=b0/lFl_*lQl_;
 lFl=eigs(F, 1);
 
 epsr = rel*norm(b0);
@@ -30,6 +30,8 @@ VM=[];
 Vrho=[];
 VCrit=[];
 VIncrement=[];
+geom_res=-1;
+Vgeom_res=[];
 
 c(idx_no_bounds) = -Inf*ones(length(idx_no_bounds),1);
 
@@ -47,11 +49,10 @@ mi=mi+rho*Gu;
 b=b0-G'*mi;
 
 
-A=F+rho*Q; % A=P*F*P+rho*Q;
+A=F+rho*Q;
 lAl=eigs(A, 1);
 alfa=1/lAl;
 M=M_start*lAl;
-M_old=M;
 
 Lag=0.5*u'*A*u-b'*u;
 Lag_old=Lag;
@@ -62,24 +63,11 @@ l_vypis=0;
 
 Gu_old=Gu;
 gp_old=gp;
-
+tag=false;
 while (1)
-    if (norm(gp)<epsr && norm(Gu)<epsr)
-        fprintf('Converged: norm(gp)=%d  norm(Gu)=%d.\n',norm(gp),norm(Gu));
-        break
-    end
-    
     % Gradient splitting of g=-r, gf=gradient free(fi), gr=gradient free
     % reduced (fired), gc=gradient chopped or cut (beta), gp=gf+gc=projected grad.
     % previously used gr = min(lAl*J.*(u-c), gf);
-    
-    %     if nargin>=11
-    %         if ~isempty(update_G)
-    %             G=update_G(u);
-    %             Q=G'*G;
-    %             A=F+rho*Q;
-    %         end
-    %     end
     
     g = A*u - b;
     gf = J.*g;
@@ -91,7 +79,7 @@ while (1)
     while (1)
         
         crit=min(M*norm(Gu),norm_b0);
-        if norm(gp)<crit || (norm(gp)<epsr && norm(Gu)<epsr)
+        if norm(gp)<crit || (norm(gp)<epsr && norm(Gu)<epsr && abs(geom_res)<rel)
             break
         end
         VCrit=[VCrit crit];
@@ -178,17 +166,16 @@ while (1)
             M = M/betarho;
         end
         if type=='r'
-            %M = M/betarho;
             rho=rho*betarho;
             A=F+rho*Q;
-            lAl=betarho*lAl;%eigs(A, 1);
+            lAl=max(1,rho);
             alfa=1/lAl;
         end
         if type=='m'
             if norm(gp)/norm(gp_old)<min(M,1)*norm(Gu)/norm(Gu_old)
                 rho=rho*betarho;
                 A=F+rho*Q;
-                lAl=max(1,rho);%eigs(A, 1);
+                lAl=max(1,rho);
                 alfa=1/lAl;
             else
                 M = M/betarho;
@@ -196,32 +183,61 @@ while (1)
         end
     end
     
+    if (norm(gp)<epsr && norm(Gu)<epsr) && abs(geom_res)<rel
+        fprintf('Converged: norm(gp)=%d  norm(Gu)=%d.\n',norm(gp),norm(Gu));
+        break
+    end
+    geom_res=-1;
+    if norm(Gu)<tol_to_update %|| tag
+        betarho=1;
+        tag=~tag;
+        if ~isempty(update_G)
+            [F,b0,G,c,update_data,geom_res] = update_G(u,update_data);
+           
+            F=F/lFl_*lQl_;
+            b0=b0/lFl_*lQl_;
+            
+            u=max(u,c);
+            J = (u > c);
+            Q=G'*G;
+            A=F+rho*Q;
+        end
+    end
+    Vgeom_res=[Vgeom_res geom_res];
     Gu_old=Gu;
     gp_old=gp;
     
     b=b0-G'*mi;
     nout = nout + 1;
-    
-    l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d, M=%d, rho=%d\n',nout, ncg,Vgp(end),Vnarus(end),M,rho),l_vypis );
-    
+    if printres
+        l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d, M=%d, rho=%d\n',nout, ncg,Vgp(end),Vnarus(end),M,rho),l_vypis );
+    end
     if (ncg>=maxiter_cg)
         fprintf('Maximum iterations reached.\n');
         break
     end
 end
 fprintf('Number of iterations: nout=%d ncg=%d ne=%d np=%d\n', nout, ncg, ne, np);
-figure;
-semilogy(Vgp, 'r'); hold on;
-semilogy(Vnarus, 'g');
-semilogy(abs(VLagIn), 'b');
-semilogy(VCrit, 'k');
-semilogy(Vcg,abs(VLag), 'r+:');
-semilogy(Vcg,VM, 'b+-');
-semilogy(Vcg,Vrho, 'k+-');
-semilogy(Vcg,VIncrement, 'g+-');
-title('Convergence in CG iterations')
-xlabel('CG iter')
-ylabel('value')
-legend({'gp','narus','abs(LagIn)','Crit','abs(Lag)','M','rho','increment'})
+if printres
+    figure;
+    semilogy(Vgp, 'r'); hold on;
+    semilogy(Vnarus, 'g');
+    semilogy(abs(VLagIn), 'b');
+    semilogy(VCrit, 'k');
+    semilogy(Vcg,abs(VLag), 'r+:');
+    semilogy(Vcg,VM, 'b+-');
+    semilogy(Vcg,Vrho, 'k+-');
+    semilogy(Vcg,VIncrement, 'g+-');
+    if (ncg>=maxiter_cg)
+        semilogy(Vcg,Vgeom_res, 'k*:');
+    else
+        semilogy(Vcg(1:end-1),Vgeom_res, 'k*:');
+    end
+    
+    title('Convergence in CG iterations');
+    xlabel('CG iter');
+    ylabel('value');
+    legend({'gp','narus','abs(LagIn)','Crit','abs(Lag)','M','rho','increment','Bi-Biold'});
+end
 end
 

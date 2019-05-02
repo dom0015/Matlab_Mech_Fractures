@@ -11,9 +11,9 @@ lFl=rayleigh_est(F, 100,1e-2);
 
 epsr = rel*norm(b0);
 
-ncg = 0; 
-ne = 0; 
-np = 0; 
+ncg = 0;
+ne = 0;
+np = 0;
 nout = 0;
 
 VLag=[];
@@ -34,7 +34,7 @@ u=max(u0,c+eps);
 J = (u > c);
 rho = rho0* lFl;
 Gu=G*u;
-mi=zeros(size(G,1),1);  
+mi=zeros(size(G,1),1);
 mi=mi+rho*Gu;
 b=b0-G'*mi;
 Q=G'*G;
@@ -138,7 +138,7 @@ while (1)
         if (ncg>=maxiter_cg)
             break
         end
-    end  
+    end
     
     mi=mi+rho*Gu;
     VLag=[VLag Lag];
@@ -148,30 +148,35 @@ while (1)
     
     Increment=0.5*rho*crit^2;
     
-    if Lag - Lag_old < Increment
-        % M = M/betarho;
-        rho=rho*betarho;
-        if nargin>=11
-            if ~isempty(update_G)
-                [F,b0,G,c] = update_G(u);
-                u=max(u,c);
-                J = (u > c);
-                Gu=G*u;
-                Q=G'*G;
-                %mi=zeros(size(G,1),1);
-                %mi=mi+rho*Gu;
-            end
-        end    
+    if ~isempty(update_G)
+        [F,b0,G,c] = update_G(u);
+        u=max(u,c);
+        J = (u > c);
+        Gu=G*u;
+        Q=G'*G;
+        %mi=zeros(size(G,1),1);
+        %mi=mi+rho*Gu;
         A=F+rho*Q;
         lAl=rayleigh_est(A, 100,1e-2);
         alfa=1/lAl;
     end
     
+    if Lag - Lag_old < Increment
+        M = M/betarho;
+        %rho=rho*betarho;
+        
+        
+        
+        %         A=F+rho*Q;
+        %         lAl=rayleigh_est(A, 100,1e-2);
+        %         alfa=1/lAl;
+    end
+    
     b=b0-G'*mi;
     nout = nout + 1;
     if ~isempty(Vgp)
-    %l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d\n',nout, ncg,Vgp(end),Vnarus(end)),l_vypis );
-    fprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d\n',nout, ncg,Vgp(end),Vnarus(end))
+        %l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d\n',nout, ncg,Vgp(end),Vnarus(end)),l_vypis );
+        fprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d\n',nout, ncg,Vgp(end),Vnarus(end))
     end
     if (ncg>=maxiter_cg)
         fprintf('Maximum iterations reached.\n');
@@ -179,18 +184,18 @@ while (1)
     end
 end
 fprintf('Number of iterations: nout=%d ncg=%d ne=%d np=%d\n', nout, ncg, ne, np);
-figure; 
-semilogy(Vgp, 'r'); hold on;  
-semilogy(Vnarus, 'g'); 
-semilogy(abs(VLagIn), 'b'); 
+figure;
+semilogy(Vgp, 'r'); hold on;
+semilogy(Vnarus, 'g');
+semilogy(abs(VLagIn), 'b');
 semilogy(VCrit, 'k');
 title('Convergence in CG iterations')
 xlabel('CG iter')
 ylabel('value')
 legend({'gp','narus','abs(LagIn)','Crit'})
 
-figure; 
-semilogy(abs(VLag), 'r'); hold on; 
+figure;
+semilogy(abs(VLag), 'r'); hold on;
 semilogy(VM, 'b');
 title('Convergence in outer iter')
 xlabel('Outer iter')
