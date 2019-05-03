@@ -1,4 +1,4 @@
-function [u,update_data,nout,ncg] = SMALSE_update(F,b0,G,c,update_G,update_data,idx_no_bounds,rel,tol_to_update,rho0,betarho,Gama,M_start,maxiter_cg,type,printres)
+function [u,nout,ncg] = SMALSE_nastrel(F,b0,G,c,u0,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg,type)
 % SMALSE  David
 % MPRGP
 % INPUTS -----------------------------------------------
@@ -6,30 +6,36 @@ function [u,update_data,nout,ncg] = SMALSE_update(F,b0,G,c,update_G,update_data,
 % b0 -
 % G -
 %-------------------------------------------------------
+Q=G'*G;
+lFl=eigs(F, 1);
+lQl=eigs(Q, 1);
 
-
+F=F/lFl*lQl;
+b0=b0/lFl*lQl;
+lFl=eigs(F, 1);
+rho = rho0* lFl;
 c(idx_no_bounds) = -Inf*ones(length(idx_no_bounds),1);
 
-
-u0=zeros(length(c),1);
-
-u=max(u0,c);
-
-if ~isempty(update_G)
-    
-    [F,b0,G,c,update_data] = update_G(u,update_data);
-    
+if isempty(u0)
+    u0=zeros(length(c),1);
+    u=max(u0,c);
+    J = (u > c);
+    Gu=G*u;
+    mi=zeros(size(G,1),1);
+    mi=mi+rho*Gu;
+else
+    u=max(u0,c);
+    Gu=G*u;
+    J = (u > c+norm(Gu)^(0.8));
+    u(~J)=c(~J);
+    Gu=G*u;
+    tres=(b0-F*u);
+    mi=(G(:,J)')\(tres(J));
+    J = (u > c);
 end
 
 
-Q=G'*G;
-lFl_=eigs(F, 1);
-lQl_=eigs(Q, 1);
-
-F=F/lFl_*lQl_;
-b0=b0/lFl_*lQl_;
-lFl=eigs(F, 1);
-epsr = rel;
+epsr = rel*norm(b0);
 
 ncg = 0;
 ne = 0;
@@ -45,28 +51,23 @@ VM=[];
 Vrho=[];
 VCrit=[];
 VIncrement=[];
-Vexpng=[];
-Vexpgp=[];
 
-if ~isempty(update_G)
-    geom_res=-1;
-else
-    geom_res=0;
-end
-Vgeom_res=[];
 
-J = (u > c);
-rho = rho0* lFl;
-Gu=G*u;
-mi=zeros(size(G,1),1);
-mi=mi+rho*Gu;
+
+
+
+
+
+
+
 b=b0-G'*mi;
 
 
-A=F+rho*Q;
+A=F+rho*Q; % A=P*F*P+rho*Q;
 lAl=eigs(A, 1);
-alfa=2/lAl;
+alfa=1/lAl;
 M=M_start*lAl;
+M_old=M;
 
 Lag=0.5*u'*A*u-b'*u;
 Lag_old=Lag;
@@ -77,11 +78,24 @@ l_vypis=0;
 
 Gu_old=Gu;
 gp_old=gp;
-tag=false;
+
 while (1)
+    if (norm(gp)<epsr && norm(Gu)<epsr)
+        fprintf('Converged: norm(gp)=%d  norm(Gu)=%d.\n',norm(gp),norm(Gu));
+        break
+    end
+    
     % Gradient splitting of g=-r, gf=gradient free(fi), gr=gradient free
     % reduced (fired), gc=gradient chopped or cut (beta), gp=gf+gc=projected grad.
     % previously used gr = min(lAl*J.*(u-c), gf);
+    
+    %     if nargin>=11
+    %         if ~isempty(update_G)
+    %             G=update_G(u);
+    %             Q=G'*G;
+    %             A=F+rho*Q;
+    %         end
+    %     end
     
     g = A*u - b;
     gf = J.*g;
@@ -90,13 +104,10 @@ while (1)
     gp = gf + gc;
     p=gf;
     Gu=G*u;
-    p_all=[];
-    g_all=[];
     while (1)
-        if ncg==1362
-        end
+        
         crit=min(M*norm(Gu),norm_b0);
-        if norm(gp)<crit || (norm(gp)<epsr && norm(Gu)<epsr && abs(geom_res)<rel)
+        if norm(gp)<crit || (norm(gp)<epsr && norm(Gu)<epsr)
             break
         end
         VCrit=[VCrit crit];
@@ -109,6 +120,7 @@ while (1)
             acg=rtp/pAp;
             yy=u-acg*p;
             ncg=ncg+1;
+            
             if all(yy>=c)
                 %Conjugate gradient step
                 u=yy;
@@ -117,22 +129,9 @@ while (1)
                 gc = min((~J).*g,0);
                 gr = min(lAl*J.*(u-c), gf);
                 gp = gf + gc;
-%                 if ~isempty(g_all)
-%                     g=gp-g_all(:,end)*(g_all(:,end)'*gp);
-%                     gf = J.*g;
-%                     gc = min((~J).*g,0);
-%                     gp = gf + gc;
-%                 end
-                g_all=[g_all gp/norm(gp)];
                 beta=gf'*Ap/pAp;
                 p=gf-beta*p;
-%                 if ~isempty(p_all)
-%                     p=p-p_all(:,max(1,end-100):end)*(p_all(:,max(1,end-100):end)'*(A*p));
-%                 end
-                p_all=[p_all p/norm(p)];
             else
-                p_all=[];
-                g_all=[];
                 %partial conjugate gradient step
                 if max((J.*p)./(J.*(u-c)+(~J)))~=0
                     a=1/max((J.*p)./(J.*(u-c)+(~J)));
@@ -154,8 +153,6 @@ while (1)
                 gp = gf + gc;
                 p=gf;
                 ne=ne+1;
-                Vexpng=[Vexpng ncg];
-                Vexpgp=[Vexpgp norm(gp)];
             end
         else
             %Proportioning step
@@ -197,16 +194,17 @@ while (1)
             M = M/betarho;
         end
         if type=='r'
+            %M = M/betarho;
             rho=rho*betarho;
             A=F+rho*Q;
-            lAl=max(1,rho);
+            lAl=betarho*lAl;%eigs(A, 1);
             alfa=1/lAl;
         end
         if type=='m'
             if norm(gp)/norm(gp_old)<min(M,1)*norm(Gu)/norm(Gu_old)
                 rho=rho*betarho;
                 A=F+rho*Q;
-                lAl=max(1,rho);
+                lAl=max(1,rho);%eigs(A, 1);
                 alfa=1/lAl;
             else
                 M = M/betarho;
@@ -214,39 +212,15 @@ while (1)
         end
     end
     
-    if (norm(gp)<epsr && norm(Gu)<epsr) && abs(geom_res)<rel
-        fprintf('Converged: norm(gp)=%d  norm(Gu)=%d.\n',norm(gp),norm(Gu));
-        break
-    end
-    
-    if ~isempty(update_G)
-        geom_res=-1;
-        if norm(Gu)<tol_to_update %|| tag
-            %betarho=1;
-            tag=true;
-            
-            [F,b0,G,c,update_data,geom_res] = update_G(u,update_data);
-            F=F++speye(length(u))*1e-12;
-            F=F/lFl_*lQl_;
-            b0=b0/lFl_*lQl_;
-            Gu=G*u;
-            u=max(u,c);
-            %J = (u > c+norm(Gu));
-            %tres=(b0-F*u);
-            %mi=-(G(:,J)')\(-tres(J));
-            J = (u > c);
-            Q=G'*G;
-            A=F+rho*Q+speye(length(u));
-        end
-    end
-    
-    Vgeom_res=[Vgeom_res geom_res];
     Gu_old=Gu;
     gp_old=gp;
     
     b=b0-G'*mi;
     nout = nout + 1;
-    if printres
+    if isempty(Vgp)
+        l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d, M=%d, rho=%d\n',nout, ncg,-1,-1,M,rho),l_vypis );
+        
+    else
         l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d, M=%d, rho=%d\n',nout, ncg,Vgp(end),Vnarus(end),M,rho),l_vypis );
     end
     if (ncg>=maxiter_cg)
@@ -255,27 +229,18 @@ while (1)
     end
 end
 fprintf('Number of iterations: nout=%d ncg=%d ne=%d np=%d\n', nout, ncg, ne, np);
-if printres
-    figure;
-    semilogy(Vgp, 'r'); hold on;
-    semilogy(Vnarus, 'g');
-    semilogy(abs(VLagIn), 'b');
-    semilogy(VCrit, 'k');
-    semilogy(Vcg,abs(VLag), 'r+:');
-    semilogy(Vcg,VM, 'b+-');
-    semilogy(Vcg,Vrho, 'k+-');
-    semilogy(Vcg,VIncrement, 'g+-');
-    
-    if (ncg>=maxiter_cg)
-        semilogy(Vcg,Vgeom_res, 'k*:');
-    else
-        semilogy(Vcg(1:end-1),Vgeom_res, 'k*:');
-    end
-    semilogy(Vexpng,Vexpgp, 'g+','MarkerSize',20);
-    title('Convergence in CG iterations');
-    xlabel('CG iter');
-    ylabel('value');
-    legend({'gp','narus','abs(LagIn)','Crit','abs(Lag)','M','rho','increment','Bi-Biold','expanze'});
-end
+figure;
+semilogy(Vgp, 'r'); hold on;
+semilogy(Vnarus, 'g');
+semilogy(abs(VLagIn), 'b');
+semilogy(VCrit, 'k');
+semilogy(Vcg,abs(VLag), 'r+:');
+semilogy(Vcg,VM, 'b+-');
+semilogy(Vcg,Vrho, 'k+-');
+semilogy(Vcg,VIncrement, 'g+-');
+title('Convergence in CG iterations')
+xlabel('CG iter')
+ylabel('value')
+legend({'gp','narus','abs(LagIn)','Crit','abs(Lag)','M','rho','increment'})
 end
 
