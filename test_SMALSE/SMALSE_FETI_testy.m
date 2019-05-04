@@ -1,7 +1,7 @@
 %% PARAMETERS -------------------------------------------------------------
-Nxy=51;
+Nxy=41;
 L1=1; L2=1;
-sumbdomains_FETI=ceil(Nxy/15)^2;
+sumbdomains_FETI=10;%ceil(Nxy/15)^2;
 
 % 
 % mat_const=10000;
@@ -27,21 +27,21 @@ sumbdomains_FETI=ceil(Nxy/15)^2;
 %     @(x)2+0*x,@(x)2+0*x
 %     @(x)1+0*x,@(x)1+0*x};
 
-% mat_const=50;
-% frac_press_val=1;
-% frac_start_end={[0.1 0.4], [0.9 0.4]
-%      [0.3 0.5], [0.6 0.5]
-%      [0.1 0.6], [0.9 0.6]
-%      [0.5 0.1], [0.5 0.9]};
-% frac_press={@(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-%     @(x)2*frac_press_val/5+0*x,@(x)2*frac_press_val/5+0*x
-%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x};
-
-mat_const=1;
+mat_const=10;
 frac_press_val=1;
-frac_start_end={[0.5 0.1], [0.5 0.9]};
-frac_press={@(x)1*(-0.5+sin(5*pi*x)),@(x)0*x};
+frac_start_end={[0.1 0.4], [0.9 0.4]
+     [0.3 0.5], [0.6 0.5]
+     [0.1 0.6], [0.9 0.6]
+     [0.5 0.1], [0.5 0.9]};
+frac_press={@(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+    @(x)2*frac_press_val/5+0*x,@(x)2*frac_press_val/5+0*x
+    @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+    @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x};
+
+% mat_const=0.5;
+% frac_press_val=1;
+% frac_start_end={[0.1 0.5], [0.9 0.5]};
+% frac_press={@(x)1*(-0.5+sin(5*pi*x)),@(x)0*x};
 
 FETI_test_assembly
 

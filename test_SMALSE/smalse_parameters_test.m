@@ -39,18 +39,18 @@ update_G=@(x,data)Update_all_dual(x,idx_no_bounds,idx_bounds,c,B_e,A_plus,b,R,B_
 
 
 
-rel=1.0e-16;
+rel=1.0e-12;
 rho0=10;
 betarho=2;
 Gama = 1;
-M_start=0.0001;
-tol_to_update=1e-20;
-maxiter_cg = 3000;
+M_start=0.1;
+tol_to_update=1e-7;
+maxiter_cg = 10000;
 type='M';
 
 
 tic
-[lambda_ker,update_temp_struct] = SMALSE_update(F,d-F*lambda_ImGt,G,c_ker,[],update_temp_struct,idx_no_bounds,rel,tol_to_update,rho0,betarho,Gama,M_start,maxiter_cg,type,true);
+[lambda_ker,update_temp_struct] = SMALSE_update(F,d-F*lambda_ImGt,G,c_ker,update_G,update_temp_struct,idx_no_bounds,rel,tol_to_update,rho0,betarho,Gama,M_start,maxiter_cg,type,true);
 toc
 
 [~,~,~,~,~,~,x_elast] =update_G(lambda_ker,update_temp_struct);

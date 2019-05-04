@@ -1,7 +1,8 @@
 load('test_stability.mat')
 idx_no_bounds=1:length(c_e);
 idx_bounds=length(c_e)+1:length(c_i);
-%%
+
+%% parametry SMALSE--------------------------------------------------------
 rel=1.0e-14;
 rho0=1;
 betarho=2;
@@ -10,6 +11,7 @@ maxiter_cg = 10000;
 M_start=0.1;
 type='M';
 
+%perturbace
 perturbace=1e-12; % velikost perturbace posunuti -> vede ke drobne zmene normalv trhlinach ~ B_i
 
 %% puvodni B_i ->B_i je slozene ze dvou stejnych matic za sebou ~ normaly z leva a z prava jsou stejne
