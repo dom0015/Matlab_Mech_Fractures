@@ -14,8 +14,8 @@ idx_active_equality(idx_bounds)=lambda(idx_bounds)>0;
 B_pruh=B(idx_active_equality,:);
 c_pruh=c(idx_active_equality);
 B_R=B_pruh*R;
-alpha=(B_R'*B_R)\(B_R'*(c_pruh-B_pruh*x_elast));
-
+alpha=(pinv(full(B_R'*B_R)))*(B_R'*(c_pruh-B_pruh*x_elast));
+%[alpha,flag,relres,iter,resvec]=gmres(B_R'*B_R,(B_R'*(c_pruh-B_pruh*x_elast)),[],1e-5,10000);
 x_elast=x_elast+R*alpha;
 
 B_i=B_iupdate(x_elast);

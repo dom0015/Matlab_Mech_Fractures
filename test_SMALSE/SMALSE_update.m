@@ -29,7 +29,7 @@ lQl_=eigs(Q, 1);
 F=F/lFl_*lQl_;
 b0=b0/lFl_*lQl_;
 lFl=eigs(F, 1);
-epsr = rel;
+epsr = rel*norm(b0);
 
 ncg = 0;
 ne = 0;
@@ -113,27 +113,28 @@ while (1)
                 %Conjugate gradient step
                 u=yy;
                 g=g-acg*Ap;
-               % g_all=[g_all g/norm(g)];
+
                 gf = J.*g;
                 gc = min((~J).*g,0);
                 gr = min(lAl*J.*(u-c), gf);
                 gp = gf + gc;
 %                 if ~isempty(g_all)
-%                     g=gp-g_all(:,end)*(g_all(:,end)'*gp);
-%                     gf = J.*g;
-%                     gc = min((~J).*g,0);
-%                     gp = gf + gc;
+%                     gp=gp-g_all(:,max(1,end-200):end)*(g_all(:,max(1,end-200):end)'*gp);
+% %                     gf = J.*g;
+% %                     gc = min((~J).*g,0);
+% %                     gp = gf + gc;
 %                 end
+%                 g_all=[g_all gp/norm(gp)];
                 if size(g_all,2)>10
                 end
                 beta=gf'*Ap/pAp;
                 p=gf-beta*p;
-                if ~isempty(p_all)
+%                 if ~isempty(p_all)
 %                     p=p-p_all(:,max(1,end-200):end)*(p_all(:,max(1,end-200):end)'*(A*p));
 %                     p=p-p_all(:,max(1,end-200):end)*(p_all(:,max(1,end-200):end)'*(A*p));
 %                     p=p-p_all(:,max(1,end-200):end)*(p_all(:,max(1,end-200):end)'*(A*p));
-                end
-               % p_all=[p_all p/sqrt((p'*A*p))];
+%                 end
+%                 p_all=[p_all p/sqrt((p'*A*p))];
             else
                 p_all=[];
                 g_all=[];
@@ -226,7 +227,8 @@ while (1)
     if ~isempty(update_G)
         geom_res=-1;
         if norm(Gu)<tol_to_update %&& ~tag
-            betarho=1;
+            tol_to_update=max(norm(Gu)/10,epsr);
+      %      betarho=1;
             tag=true;
             
             [F,b0,G,c,update_data,geom_res] = update_G(u,update_data);

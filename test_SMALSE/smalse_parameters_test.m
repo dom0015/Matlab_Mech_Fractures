@@ -40,13 +40,13 @@ update_G=@(x,data)Update_all_dual(x,idx_no_bounds,idx_bounds,c,B_e,A_plus,b,R,B_
 
 
 rel=1.0e-12;
-rho0=10;
+rho0=0.1;
 betarho=2;
 Gama = 1;
-M_start=0.1;
-tol_to_update=1e-7;
+M_start=10;
+tol_to_update=1e-8;
 maxiter_cg = 10000;
-type='M';
+type='m';
 
 
 tic

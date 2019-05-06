@@ -1,7 +1,7 @@
 %% PARAMETERS -------------------------------------------------------------
-Nxy=41;
+Nxy=101;
 L1=1; L2=1;
-sumbdomains_FETI=10;%ceil(Nxy/15)^2;
+sumbdomains_FETI=ceil(Nxy/15)^2;
 
 % 
 % mat_const=10000;
@@ -27,7 +27,7 @@ sumbdomains_FETI=10;%ceil(Nxy/15)^2;
 %     @(x)2+0*x,@(x)2+0*x
 %     @(x)1+0*x,@(x)1+0*x};
 
-mat_const=10;
+mat_const=100;
 frac_press_val=1;
 frac_start_end={[0.1 0.4], [0.9 0.4]
      [0.3 0.5], [0.6 0.5]
@@ -35,6 +35,7 @@ frac_start_end={[0.1 0.4], [0.9 0.4]
      [0.5 0.1], [0.5 0.9]};
 frac_press={@(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
     @(x)2*frac_press_val/5+0*x,@(x)2*frac_press_val/5+0*x
+    @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x};
 
@@ -64,13 +65,13 @@ c_ker(idx_no_bounds)=0;
 
 
 %%
-rel=1.0e-12;
+rel=1.0e-10;
 rho0=1;
 betarho=2;
 Gama = 1;
 maxiter_cg = 10000;
-M_start=0.1;
-type='M';
+M_start=1;
+type='m';
 
 [lambda_ker] = SMALSE(F,(d-F*lambda_ImGt),G,c_ker,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg,type);
 
@@ -96,7 +97,8 @@ idx_active_equality(idx_bounds)=lambda(idx_bounds)>0;
 B_pruh=B(idx_active_equality,:);
 c_pruh=c(idx_active_equality);
 B_R=B_pruh*R;
-alpha=(B_R'*B_R)\(B_R'*(c_pruh-B_pruh*x_elast));
+tmp=B_R'*B_R;
+alpha=pinv(full(tmp))*B_R'*(c_pruh-B_pruh*x_elast);
 
 x_elast=x_elast+R*alpha;
 
