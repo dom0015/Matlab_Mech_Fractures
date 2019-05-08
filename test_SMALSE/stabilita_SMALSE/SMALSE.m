@@ -1,4 +1,4 @@
-function [u,nout,ncg] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg,type)
+function [u,mi,nout,ncg] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg,type)
 % SMALSE  David
 % MPRGP
 % INPUTS -----------------------------------------------
@@ -6,12 +6,24 @@ function [u,nout,ncg] = SMALSE(F,b0,G,c,idx_no_bounds,rel,rho0,betarho,Gama,M_st
 % b0 -
 % G -
 %-------------------------------------------------------
-Q=G'*G;
-lFl=eigs(F, 1);
-lQl=eigs(Q, 1);
 
-F=F/lFl*lQl;
-b0=b0/lFl*lQl;
+
+%% škálování 1:1 F a Q
+Q=G'*G;
+lFl_=eigs(F, 1);
+lQl_=eigs(Q, 1);
+F=F/lFl_*lQl_;
+b0=b0/lFl_*lQl_;
+
+%% projekce
+[L] = chol(G*G');
+L_inv=inv(L);
+P=speye(size(G,2))-G'*(L_inv*L_inv')*G;
+G=L_inv'*G;
+F=P*F*P;
+
+
+%%
 lFl=eigs(F, 1);
 
 epsr = rel*norm(b0);
@@ -46,9 +58,9 @@ mi=zeros(size(G,1),1);
 mi=mi+rho*Gu;
 b=b0-G'*mi;
 
-
+Q=G'*G;
 A=F+rho*Q; % A=P*F*P+rho*Q;
-lAl=eigs(A, 1);
+lAl=min(rho,1);%eigs(A, 1);
 alfa=1/lAl;
 M=M_start*lAl;
 M_old=M;
@@ -223,5 +235,6 @@ title('Convergence in CG iterations')
 xlabel('CG iter')
 ylabel('value')
 legend({'gp','narus','abs(LagIn)','Crit','abs(Lag)','M','rho','increment'})
+mi=-L'*mi*lFl_/lQl_;
 end
 

@@ -1,11 +1,29 @@
 function [u,update_data,nout,ncg] = SMALSE_update(F,b0,G,c,update_G,update_data,idx_no_bounds,rel,tol_to_update,rho0,betarho,Gama,M_start,maxiter_cg,type,printres)
-% SMALSE  David
-% MPRGP
+%% SMALSE  with updates of geometry for dual formulation
+% includes initial guess, adaptive change of rho/M
 % INPUTS -----------------------------------------------
-% F -
-% b0 -
-% G -
-%-------------------------------------------------------
+% F - matrix from minimization u'Fu-u'b0
+% b0 - rhs from minimization
+% G - equaliti constrain Gu=0
+% c - lower bounds u>=c
+% u0 - original guess of the solution
+% update_Geom - [F,b0,G,c,update_data,geom_res] = update_G(u,update_data);
+%          - fnc for updating geometry
+% update_data - changing data on update struct(lambda_ImGt, B_i)
+% idx_no_bounds - indexes of nodes without lower bound (c=-inf)
+% epsr - precision for norm(gp) and norm(Gu)
+% epsrGeom - precision for geometry change (geom_res of update_Geom)
+% epsupd - maximum value of abs(Lag-LagOld) for allowed update of params
+% tol_to_update - minimum precision of norm(Gu) for geometry update
+% rho0 - starting value of rho (lFl=lG'Gl=1)
+% betarho - increment of rho=betarho*rho / M=M/betarho
+% Gama - gama parameter (gc'*gc <= Gama^2*gr'*gf)
+% M_start - starting value of M (M=M_start*lAl)
+% maxiter_cg - maximum of cg steps
+% type - type of update ('M'-change only M, 'rho' - change only rho, 
+%        'm' - change M and rho depending on gp/Gu decrease)
+% printres - true/false - printig intermediate results and graphs
+%% -------------------------------------------------------
 
 
 c(idx_no_bounds) = -Inf*ones(length(idx_no_bounds),1);

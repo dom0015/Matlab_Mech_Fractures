@@ -1,4 +1,4 @@
-load('test_stability.mat')
+%load('test_stability.mat')
 idx_no_bounds=1:length(c_e);
 idx_bounds=length(c_e)+1:length(c_i);
 
@@ -8,11 +8,11 @@ rho0=1;
 betarho=2;
 Gama = 1;
 maxiter_cg = 10000;
-M_start=0.1;
+M_start=1;
 type='M';
 
 %perturbace
-perturbace=1e-12; % velikost perturbace posunuti -> vede ke drobne zmene normalv trhlinach ~ B_i
+perturbace=1e-6; % velikost perturbace posunuti -> vede ke drobne zmene normalv trhlinach ~ B_i
 
 %% puvodni B_i ->B_i je slozene ze dvou stejnych matic za sebou ~ normaly z leva a z prava jsou stejne
 B_i=B_iupdate(b*0); % normály oproti nulovemu posunu
@@ -30,7 +30,7 @@ c_ker=-lambda_ImGt;
 c_ker(idx_no_bounds)=0;
 
 %SMALSE reseni
-[lambda_ker] = SMALSE(F,(d-F*lambda_ImGt),G,c_ker,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg,type);
+[lambda_ker,mi,nout,ncg] = SMALSE(F,(d-F*lambda_ImGt),G,c_ker,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg,type);
 
 %rekonstrukce posunuti
 lambda=lambda_ker+lambda_ImGt;
@@ -66,7 +66,7 @@ lambda_ImGt=G'*((G*G')\(e));
 c_ker=-lambda_ImGt;
 
 %SMALSE reseni
-[lambda_ker] = SMALSE(F,(d-F*lambda_ImGt),G,c_ker,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg,type);
+[lambda_ker,nout,ncg,mi] = SMALSE(F,(d-F*lambda_ImGt),G,c_ker,idx_no_bounds,rel,rho0,betarho,Gama,M_start,maxiter_cg,type);
 
 %rekonstrukce posunuti
 lambda=lambda_ker+lambda_ImGt;

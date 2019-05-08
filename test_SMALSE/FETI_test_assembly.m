@@ -41,7 +41,7 @@ N_bound_value{1}=tmp_nx;
 N_bound_value{2}=tmp_ny;
 
 %% FETI partitioning ------------------------------------------------------
-[map,sub_nodes,sub_elem,sub_material_constants,sub_volume_force,sub_neumann,sub_neumann_val,sub_sizes,B_FETI,node_map_on,plot_func]=...
+[map,sub_nodes,sub_elem,sub_material_constants,sub_volume_force,sub_neumann,sub_neumann_val,sub_sizes,B_FETI,node_map_on,plot_func,plot_func2]=...
     partition_FETI(POINTS,ELEMENTS,material_constants,volume_force,N_bound,N_bound_value,sumbdomains_FETI);
 
 %% Elasticity sub-Matrices assembly ---------------------------------------
