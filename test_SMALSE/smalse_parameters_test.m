@@ -39,12 +39,12 @@ update_G=@(x,data)Update_all_dual(x,idx_no_bounds,idx_bounds,c,B_e,A_plus,b,R,B_
 
 
 
-rel=1.0e-12;
-rho0=0.1;
+rel=1.0e-8;
+rho0=1;
 betarho=2;
 Gama = 1;
-M_start=10;
-tol_to_update=1e-8;
+M_start=1;
+tol_to_update=1e-9;
 maxiter_cg = 10000;
 type='m';
 
@@ -56,5 +56,6 @@ toc
 [~,~,~,~,~,~,x_elast] =update_G(lambda_ker,update_temp_struct);
 
 
-plot_func(x_elast,fracture_matrice);
+plot_func2(x_elast,fracture_matrice);
 
+[D] = construct_apertures(update_temp_struct.B_i*x_elast,fracture_matrice);

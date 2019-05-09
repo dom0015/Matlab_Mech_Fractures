@@ -27,17 +27,43 @@ sumbdomains_FETI=ceil(Nxy/15)^2;
 %     @(x)2+0*x,@(x)2+0*x
 %     @(x)1+0*x,@(x)1+0*x};
 
-mat_const=100;
+% mat_const=10;
+% frac_press_val=1;
+% frac_start_end={[0.1 0.4], [0.9 0.4]
+%      [0.1 0.5], [0.6 0.5]
+%      [0.1 0.6], [0.9 0.6]
+%      [0.5 0.1], [0.5 0.9]
+%      [0.8 0.1], [0.8 0.9]
+%      [0.2 0.1], [0.2 0.9]
+%      [0.4 0.1], [0.4 0.9]};
+% frac_press={@(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+%     @(x)2*frac_press_val/5+0*x,@(x)2*frac_press_val/5+0*x
+%     @(x)frac_press_val/5.1+0*x,@(x)frac_press_val/5+0*x
+%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+%     @(x)frac_press_val/5.1+0*x,@(x)frac_press_val/5+0*x
+%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x};
+
+mat_const=1000;
 frac_press_val=1;
-frac_start_end={[0.1 0.4], [0.9 0.4]
-     [0.3 0.5], [0.6 0.5]
-     [0.1 0.6], [0.9 0.6]
-     [0.5 0.1], [0.5 0.9]};
+frac_start_end={[0.5 0.2], [0.9 0.2]
+     [0.5 0.1], [0.9 0.5]
+     [0.8 0.3], [0.8 0.9]
+     [0.1 0.8], [0.9 0.8]
+     [0.1 0.3], [0.7 0.9]
+     [0.1 0.4], [0.7 0.4]
+     [0.4 0.1], [0.4 0.5]
+     [0.1 0.6], [0.7 0.6]};
 frac_press={@(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
     @(x)2*frac_press_val/5+0*x,@(x)2*frac_press_val/5+0*x
+    @(x)frac_press_val/5.1+0*x,@(x)frac_press_val/5+0*x
+    @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+    @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x};
+
 
 % mat_const=0.5;
 % frac_press_val=1;
@@ -65,7 +91,7 @@ c_ker(idx_no_bounds)=0;
 
 
 %%
-rel=1.0e-10;
+rel=1.0e-12;
 rho0=1;
 betarho=2;
 Gama = 1;
@@ -104,5 +130,7 @@ x_elast=x_elast+R*alpha;
 
 
 plot_func(x_elast,fracture_matrice);
+
+plot_func2(x_elast,fracture_matrice);
 % plot_func(x_elast*20,fracture_matrice);
 % plot_func(x_elast*200,fracture_matrice);
