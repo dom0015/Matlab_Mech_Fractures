@@ -4,7 +4,7 @@ Nxy=101;
 L1=1; L2=1;
 sumbdomains_FETI=ceil(Nxy/15)^2;
 
-mat_const=10000;
+mat_const=10000*100000;
 frac_press_val=1;
 frac_start_end={[0.5 0.2], [0.9 0.2]
      [0.5 0.1], [0.9 0.5]
