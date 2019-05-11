@@ -191,7 +191,7 @@ while (1)
     Lag_old=Lag;
     Lag=(0.5*u'*A-b')*u;
     
-    Increment=0.5*rho*crit^2;
+    Increment=0.5*rho*norm(Gu)^2;
     VIncrement=[VIncrement Increment];
     
     if Lag - Lag_old < Increment && (abs(Lag - Lag_old)>epsr*norm_b0 ) && ~updatednow
@@ -205,7 +205,7 @@ while (1)
             alfa=1/lAl;
         end
         if type=='m'
-            if norm(gp)/norm(gp_old)<alfa*norm(Gu)/norm(Gu_old)
+            if norm(gp)/norm(gp_old)<0.75*norm(Gu)/norm(Gu_old)
                 rho=rho*betarho;
                 A=F+rho*Q;
                 lAl=max(1,rho);
@@ -231,7 +231,7 @@ while (1)
             u=max(u,c);
             Gu=G*u;
             mi=-alpha/lFl_*lQl_;
-            mi=mi+3*rho*Gu;
+            mi=mi+rho*Gu;
             J = (u > c);
             Q=G'*G;
             A=F+rho*Q;
@@ -260,7 +260,7 @@ while (1)
 end
 fprintf('Number of iterations: nout=%d ncg=%d ne=%d np=%d\n', nout, ncg, ne, np);
 if printres
-    figure;
+    figure(101);
     semilogy(Vgp, 'r'); hold on;
     semilogy(Vnarus, 'g');
     semilogy(abs(VLagIn), 'b');
@@ -280,6 +280,7 @@ if printres
     xlabel('CG iter');
     ylabel('value');
     legend({'gp','narus','abs(LagIn)','Crit','abs(Lag)','M','rho','increment','Bi-Biold','expanze'});
+    hold off
 end
 end
 

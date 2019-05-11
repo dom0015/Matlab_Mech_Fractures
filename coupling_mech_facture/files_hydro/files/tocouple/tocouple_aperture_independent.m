@@ -64,10 +64,10 @@ switch windows_type
                         2   0.0     0.5     0
                         2   0.5     1.0     0];
     case 5
-    Dirichlet_windows=[ 4   0    1    p
-                        2   0     1     0];
+    Dirichlet_windows=[ 2   0.2    0.8    p
+                        4   0.2    0.8     0];
 end
-Dirichlet_windows(:,2:3)=Dirichlet_windows(:,2:3)*10;
+Dirichlet_windows(:,2:3)=Dirichlet_windows(:,2:3);
 
 %% MATRICES ASSEMBLING
 [u0, A, b, freeNode, downEdge, rightEdge, upEdge, leftEdge ] = FEM_windows( POINTS, ELEMENTS, Nxy-1, bdFlag, k, f, Dirichlet_windows, g_N );

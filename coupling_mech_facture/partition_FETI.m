@@ -203,7 +203,7 @@ end
 function [fig_id]=my_trisurf3(x_full,nodes,elems,map,n_aff,fracture_matrice,node_map_on_double)
 rng(0)
 x_full=x_full(node_map_on_double);
-fig_id=figure;
+fig_id=figure(102);
 tmp=reshape(x_full,2,length(nodes))';
 vel_posunu=sqrt(sum(tmp.^2,2));
 nodes=reshape(x_full,2,length(nodes))'+nodes;
@@ -242,4 +242,5 @@ for i=1:length(fracture_matrice)
     tmpy=[y(tmp.under_nodes) zeros(length(tmp.above_nodes),1)/0]';
     plot(tmpx(:),tmpy(:),'k-','LineWidth',0.5)
 end
+hold off
 end
