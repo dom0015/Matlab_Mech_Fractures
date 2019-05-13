@@ -1,4 +1,4 @@
-function [D] = SMALSE_solver(problem_setting,SMALSE_params)
+function [D,problem_setting] = SMALSE_solver(problem_setting,SMALSE_params)
 %SMALSE_SOLVER Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -11,8 +11,11 @@ c_i=problem_setting.c_i;
 B_iupdate=problem_setting.B_iupdate;
 fracture_matrice=problem_setting.fracture_matrice;
 plot_func2=problem_setting.plot_func2;
-
-B_i=B_iupdate(0*b);
+if isempty(problem_setting.B_i)
+    B_i=B_iupdate(0*b);
+else
+    B_i=problem_setting.B_i;
+end
 B=[B_e;-B_i];
 c=[c_e;c_i*ones(size(B_i,1),1)];
 
@@ -46,14 +49,22 @@ tol_to_update=SMALSE_params.tol_to_update;
 maxiter_cg=SMALSE_params.maxiter_cg;
 type=SMALSE_params.type;
 print=SMALSE_params.print;
-
-[lambda_ker,update_temp_struct] = SMALSE_update...
-    (F,d-F*lambda_ImGt,G,c_ker,update_G,update_temp_struct,idx_no_bounds,...
+if isempty(problem_setting.lambda_ker)
+[lambda_ker,mi,update_temp_struct] = SMALSE_update...
+    (F,d-F*lambda_ImGt,G,c_ker,update_G,[],[],update_temp_struct,idx_no_bounds,...
     rel,tol_to_update,rho0,betarho,Gama,M_start,maxiter_cg,type,print);
-
+else
+    [lambda_ker,mi,update_temp_struct] = SMALSE_update...
+    (F,d-F*lambda_ImGt,G,c_ker,update_G,problem_setting.lambda_ker,problem_setting.mi,update_temp_struct,idx_no_bounds,...
+    rel,tol_to_update,rho0,betarho,Gama,M_start,maxiter_cg,type,print);
+end
+problem_setting.B_i=update_temp_struct.B_i;
+problem_setting.lambda_ker=lambda_ker;
+problem_setting.mi=mi;
 [~,~,~,~,~,~,x_elast] =update_G(lambda_ker,update_temp_struct);
+
 if print
-plot_func2(x_elast,fracture_matrice);
+plot_func2(x_elast*50,fracture_matrice);
 end
 [D] = construct_apertures(update_temp_struct.B_i*x_elast,fracture_matrice);
 end

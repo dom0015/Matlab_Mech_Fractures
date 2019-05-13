@@ -1,4 +1,4 @@
-function [u,update_data,nout,ncg] = SMALSE_update(F,b0,G,c,update_G,update_data,idx_no_bounds,rel,tol_to_update,rho0,betarho,Gama,M_start,maxiter_cg,type,printres)
+function [u,mi,update_data,nout,ncg] = SMALSE_update(F,b0,G,c,update_G,u0,mi0,update_data,idx_no_bounds,rel,tol_to_update,rho0,betarho,Gama,M_start,maxiter_cg,type,printres)
 %% SMALSE  with updates of geometry for dual formulation
 % includes initial guess, adaptive change of rho/M
 % INPUTS -----------------------------------------------
@@ -27,19 +27,6 @@ function [u,update_data,nout,ncg] = SMALSE_update(F,b0,G,c,update_G,update_data,
 
 
 c(idx_no_bounds) = -Inf*ones(length(idx_no_bounds),1);
-
-
-u0=zeros(length(c),1);
-
-u=max(u0,c);
-
-% if ~isempty(update_G)
-%     
-%     [F,b0,G,c,update_data] = update_G(u,update_data);
-%     
-% end
-
-
 Q=G'*G;
 lFl_=eigs(F, 1);
 lQl_=eigs(Q, 1);
@@ -47,6 +34,24 @@ lQl_=eigs(Q, 1);
 F=F/lFl_*lQl_;
 b0=b0/lFl_*lQl_;
 lFl=eigs(F, 1);
+rho = rho0* lFl;
+
+if isempty(u0)
+    u0=zeros(length(c),1);
+    u=max(u0,c);
+    J = (u > c);
+    Gu=G*u;
+    mi=zeros(size(G,1),1);
+    mi=mi+rho*Gu;
+else
+    u=max(u0,c);
+    Gu=G*u;
+    mi=mi0;
+    mi=mi+rho*Gu;
+    J = (u > c);
+end
+
+
 epsr = rel*norm(b0);
 
 ncg = 0;
@@ -73,11 +78,6 @@ else
 end
 Vgeom_res=[];
 
-J = (u > c);
-rho = rho0* lFl;
-Gu=G*u;
-mi=zeros(size(G,1),1);
-mi=mi+rho*Gu;
 b=b0-G'*mi;
 
 
@@ -250,8 +250,10 @@ while (1)
     
     b=b0-G'*mi;
     nout = nout + 1;
+    if ~isempty(Vnarus)
     if printres
         l_vypis = my_print( sprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d, M=%d, rho=%d\n',nout, ncg,Vgp(end),Vnarus(end),M,rho),l_vypis );
+    end
     end
     if (ncg>=maxiter_cg)
         fprintf('Maximum iterations reached.\n');

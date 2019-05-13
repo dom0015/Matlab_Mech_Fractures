@@ -5,8 +5,8 @@ p=1e6; % pressure on Dir. b. c.
 f = @(x)(0+0*x(:,1)+0*x(:,2)); % zatizeni
 g_N=@(x)(0+0*x(:,1)+0*x(:,2)); % Neumann
 mat_omega_const = 1e-15; % material - matrice
-mat_frac_const = 1e-9; % material - fractures
-alfa_inter_const = 1e-8;
+mat_frac_const = 1e-10; % material - fractures
+alfa_inter_const = 1e-14;
 
 % %% GEOMETRY PARAMETERS - defined in elasticity
 % L1=10; L2=10;
@@ -64,8 +64,8 @@ switch windows_type
                         2   0.0     0.5     0
                         2   0.5     1.0     0];
     case 5
-    Dirichlet_windows=[ 2   0.2    0.8    p
-                        4   0.2    0.8     0];
+    Dirichlet_windows=[ 2   0    1    p
+                        4   0    1     0];
 end
 Dirichlet_windows(:,2:3)=Dirichlet_windows(:,2:3);
 
