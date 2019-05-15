@@ -58,8 +58,9 @@ A_pinv=cell(sumbdomains_FETI,1);
 A_null=cell(sumbdomains_FETI,1);
 singular_values=zeros(sumbdomains_FETI,1);
 b=cell(sumbdomains_FETI,1);
+NAPETI=cell(sumbdomains_FETI,1);
 for i=1:sumbdomains_FETI
-    [ATemp,b{i}]=elasticity_assembly(sub_nodes{i},sub_elem{i},...
+    [ATemp,b{i},NAPETI{i}]=elasticity_assembly(sub_nodes{i},sub_elem{i},...
         sub_material_constants{i},sub_volume_force{i},...
         sub_neumann{i},sub_neumann_val{i});
     [APinvTemp,AKerTemp,singular_values(i)] = pinv_null(ATemp,100);
@@ -78,6 +79,7 @@ B_dirichlet_rhs=u_0(dirichlet_nodes_old);
 %% Matrix assembly --------------------------------------------------------
 mat_scale=max(singular_values);
 A=blkdiag(A{:});
+NAPETI=blkdiag(NAPETI{:});
 b=cat(1,b{:});
 A_plus = blkdiag(A_pinv{:});
 R = blkdiag(A_null{:});

@@ -1,4 +1,4 @@
-function [A,b]=elasticity_assembly(NODE,ELEM,MATERIAL,F,bdFlagNeuman,bdNeuman_val)
+function [A,b,NAPETI]=elasticity_assembly(NODE,ELEM,MATERIAL,F,bdFlagNeuman,bdNeuman_val)
 
 %MATERIAL 2 columns - lambda mu
 %F - source - 2 columns
@@ -30,6 +30,7 @@ MATERIALS=[c1111 c1122 c1112 c1122 c2222 c2212 c1112 c2212 c1212];
 AREAS=polyarea(coords1(ELEM),coords2(ELEM),2);
 A=zeros(n_NODE*2);
 % b=zeros(n_POINTS*2,1);
+NAPETI=zeros(n_ELEM*3,n_NODE*2);
 for i=1:n_ELEM
     % add local "stiffness" matrix
     x=NODE(ELEM(i,:),:);
@@ -48,7 +49,10 @@ for i=1:n_ELEM
     A_local=BEeps'*CE*BEeps*AREAS(i);
     indices=reshape([ELEM(i,:)*2-1; ELEM(i,:)*2],1,6);
     A(indices,indices)=A(indices,indices)+A_local;
+    j=(i*3-2):(i*3);
+    NAPETI(j,indices)=CE*BEeps;
 end
+NAPETI=sparse(NAPETI);
 
 %% RHS vectorized
 mid1x=(F(ELEM(:,2),1)+F(ELEM(:,3),1))/2; % midvalue

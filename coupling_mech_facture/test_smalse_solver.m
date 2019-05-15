@@ -38,7 +38,7 @@ alpha=0.4;
 for i=1:50
 
     [PRESSURE,u0_]=tocouple_handle(D,no_fractures,mat_frac,fracture_matrice,...
-        POINTS,intersections,alfa_inter,lengths,A,freeNode,b,u0);
+        POINTS,intersections,alfa_inter,lengths,A,freeNode,b,u0,ELEMENTS);
     res_press(:,i)=cell2mat(PRESSURE);
     if SMALSE_params.print
         figure(2);

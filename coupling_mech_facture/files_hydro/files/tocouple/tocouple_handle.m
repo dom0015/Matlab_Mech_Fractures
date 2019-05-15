@@ -1,5 +1,5 @@
-function [PRESSURE,u0] = tocouple_handle(D,no_fractures,mat_frac,...
-    fracture_matrice,node,intersections,alfa_inter,lengths,A,freeNode,b,u0)
+function [PRESSURE,u0,GRAD] = tocouple_handle(D,no_fractures,mat_frac,...
+    fracture_matrice,node,intersections,alfa_inter,lengths,A,freeNode,b,u0,elem)
 %TOCOUPLE_HANDLE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -39,5 +39,16 @@ u0(freeNode)=y;
 
 fprintf('res_hydro=%d\n',norm(A*u0(freeNode)-b0));
 PRESSURE = extract_pressure(u0,size(intersections,1),lengths);
+
+coord1=node(:,1); coord2=node(:,2);
+a1=coord1(elem); a2=coord2(elem);
+a11=a1(:,1); a12=a1(:,2); a13=a1(:,3); 
+a21=a2(:,1); a22=a2(:,2); a23=a2(:,3); 
+u=u0(elem);
+u1=u(:,1); u2=u(:,2); u3=u(:,3);
+GRAD1=-(a21.*u2 - a22.*u1 - a21.*u3 + a23.*u1 + a22.*u3 - a23.*u2)./(a11.*a22 - a12.*a21 - a11.*a23 + a13.*a21 + a12.*a23 - a13.*a22);
+GRAD2= (a11.*u2 - a12.*u1 - a11.*u3 + a13.*u1 + a12.*u3 - a13.*u2)./(a11.*a22 - a12.*a21 - a11.*a23 + a13.*a21 + a12.*a23 - a13.*a22);
+GRAD=[GRAD1 GRAD2];
+ 
 end
 
