@@ -6,8 +6,8 @@ function [PRESSURE,u0,GRAD] = tocouple_handle(D,no_fractures,mat_frac,...
 ALFA = cell(no_fractures,1);
 MAT_FRAC = cell(no_fractures,1);
 for i=1:no_fractures
-    MAT_FRAC{i} = mat_frac(i).*D{i};
-    ALFA{i} = mat_frac(i)./D{i};
+    MAT_FRAC{i} = mat_frac(i).*D{i}.^2;
+    ALFA{i} = 0*D{i}+mat_frac(i);%./D{i};
 end
 
 [fracture_matrice] = fracture2cells_parameters( fracture_matrice,ALFA,MAT_FRAC );

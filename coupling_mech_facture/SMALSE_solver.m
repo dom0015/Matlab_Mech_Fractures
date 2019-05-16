@@ -64,8 +64,9 @@ problem_setting.mi=mi;
 [~,~,~,~,~,~,x_elast] =update_G(lambda_ker,update_temp_struct);
 
 if print
-plot_func2(x_elast*50,fracture_matrice);
+plot_func2(x_elast,fracture_matrice);
 end
 [D] = construct_apertures(update_temp_struct.B_i*x_elast,fracture_matrice);
+problem_setting.x_elast=x_elast;
 end
 

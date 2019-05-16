@@ -1,23 +1,23 @@
-close all
-clear all
-addpath(genpath('files'))
-%% %% independent of fracture aperture
-geometry_assembly
-tocouple_aperture_independent
-
-%% %% depends on fracture aperture
-d = exp([-6 -8.5 -7]);
-D = cell(no_fractures,1);
-for i=1:no_fractures
-    D{i} = d(i)*ones(lengths(i)-1,1);
-end
-
-[PRESSURE,u0_,GRAD]=tocouple_handle(D,no_fractures,mat_frac,fracture_matrice,...
-    POINTS,intersections,alfa_inter,lengths,A,freeNode,b,u0,ELEMENTS);
-PRESSURE{1}'
-[PRESSURE,u0_,GRAD]=tocouple_handle(D,no_fractures,mat_frac,fracture_matrice,...
-    POINTS,intersections,alfa_inter,lengths,A,freeNode,b,u0,ELEMENTS);
-PRESSURE{1}'
+% close all
+% clear all
+% addpath(genpath('files'))
+% %% %% independent of fracture aperture
+% geometry_assembly
+% tocouple_aperture_independent
+% 
+% %% %% depends on fracture aperture
+% d = exp([-6 -8.5 -7]);
+% D = cell(no_fractures,1);
+% for i=1:no_fractures
+%     D{i} = d(i)*ones(lengths(i)-1,1);
+% end
+% 
+% [PRESSURE,u0_,GRAD]=tocouple_handle(D,no_fractures,mat_frac,fracture_matrice,...
+%     POINTS,intersections,alfa_inter,lengths,A,freeNode,b,u0,ELEMENTS);
+% PRESSURE{1}'
+% [PRESSURE,u0_,GRAD]=tocouple_handle(D,no_fractures,mat_frac,fracture_matrice,...
+%     POINTS,intersections,alfa_inter,lengths,A,freeNode,b,u0,ELEMENTS);
+% PRESSURE{1}'
 %% VISUALIZATION ETC.
 Q = extract_flow( A, u0_(1:length(A)), POINTS, ELEMENTS, Nxy-1, Dirichlet_windows, downEdge, rightEdge, upEdge, leftEdge );
 startx=ones(10,1);
