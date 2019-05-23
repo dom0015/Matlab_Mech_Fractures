@@ -1,4 +1,19 @@
+
+Nxy=101;
+L1=1; L2=1;
+sumbdomains_FETI=ceil(Nxy/10)^2;
+
+mat_const=1e9;
+frac_press_val=1;
+frac_start_end={[0.2 0.4], [0.9 0.4];
+                [0.2 0.2], [0.8 0.8]}; 
+            
+mat_omega_const=1e-15;
+mat_frac_const=1e-6;
+alfa_inter_const=1e-5;
+                  
 FETI_problem_assembly
+tocouple_aperture_independent
 
 SMALSE_params.rel=1.0e-2;
 SMALSE_params.rho0=1;
@@ -12,29 +27,19 @@ SMALSE_params.print=false;
 problem_setting.B_i=[];
 problem_setting.lambda_ker=[];
 
-% frac_press={@(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-%     @(x)2*frac_press_val/5+0*x,@(x)2*frac_press_val/5+0*x
-%     @(x)frac_press_val/5.1+0*x,@(x)frac_press_val/5+0*x
-%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x};
+clearvars -except SMALSE_params problem_setting hydro_problem
 
-%% HYDRO
-mat_omega_const=1e-15;
-mat_frac_const=1e-6;
-alfa_inter_const=1e-5;
-tocouple_aperture_independent
 %% depends on fracture aperture
 %d = exp([-6 -8.5 -7 -6 -8.5 -7 -6 -8.5 -7 -6 -8.5 -7 -6 -8.5 -7])/100;
+no_fractures=hydro_problem.no_fractures;
+lengths=hydro_problem.lengths;
 d = 1e-4*ones(no_fractures,1);
 D = cell(no_fractures,1);
 for i=1:no_fractures
     D{i} = d(i)*ones(lengths(i)-1,1);
 end
 D_old=D;
-
+eps_coupling=1e-5;
 res_d=[];
 res_press=[];
 alpha=0.6;
@@ -42,8 +47,7 @@ beta=1e-1;
 tic;
 for i=1:200
     
-    [PRESSURE,u0_,ugrad]=tocouple_handle(D,no_fractures,mat_frac,fracture_matrice,...
-        POINTS,intersections,alfa_inter,lengths,A,freeNode,b,u0,ELEMENTS);
+    [PRESSURE,u0_,ugrad]=tocouple_handle(D,hydro_problem);
     res_press(:,i)=cell2mat(PRESSURE);
     if SMALSE_params.print
         figure(2);
@@ -111,10 +115,10 @@ for i=1:200
 alpha=min(1,alpha*1.1);
     beta=min(1,beta^(0.5)+1e-1);
     if i>1
-    if beta==1 && alpha>=0.2 && tmp(end)<1e-6 && tmp2(end)<1e-6
+    if beta==1 && alpha>=0.2 && tmp(end)<eps_coupling && tmp2(end)<eps_coupling
         break
     end
     end
 end
 toc
-[fig_id1,fig_id2,fig_id3] = plot_stresses(problem_setting.x_elast,NAPETI,problem_setting.sub_elem,problem_setting.sub_nodes,POINTS,problem_setting.fracture_matrice);
+[fig_id1,fig_id2,fig_id3] = plot_stresses(problem_setting.x_elast,problem_setting.NAPETI,problem_setting.sub_elem,problem_setting.sub_nodes,hydro_problem.POINTS,problem_setting.fracture_matrice);

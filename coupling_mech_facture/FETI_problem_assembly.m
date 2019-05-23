@@ -1,14 +1,13 @@
 addpath(genpath('files_elasticity'))
-addpath(genpath('files_hydro'))
 %% PARAMETERS -------------------------------------------------------------
-Nxy=101;
-L1=1; L2=1;
-sumbdomains_FETI=ceil(Nxy/10)^2;
-
-mat_const=1e9;
-frac_press_val=1;
-frac_start_end={[0.2 0.4], [0.9 0.4];
-                [0.2 0.2], [0.8 0.8]}; 
+% Nxy=101;
+% L1=1; L2=1;
+% sumbdomains_FETI=ceil(Nxy/10)^2;
+% 
+% mat_const=1e9;
+% frac_press_val=1;
+% frac_start_end={[0.2 0.4], [0.9 0.4];
+%                 [0.2 0.2], [0.8 0.8]}; 
 % frac_start_end={[0.3 0.2], [0.9 0.2]
 %      [0.5 0.1], [0.9 0.5]
 %      [0.8 0.3], [0.8 0.6]
@@ -111,3 +110,4 @@ problem_setting.divide_neumann_boundary_and_force=divide_neumann_boundary_and_fo
 problem_setting.Neumann_normalx=Neumann_normalx;
 problem_setting.Neumann_normaly=Neumann_normaly;
 problem_setting.N_bound_fractures=N_bound_fractures;
+problem_setting.NAPETI=NAPETI;

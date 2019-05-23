@@ -1,6 +1,6 @@
-
+addpath(genpath('files_hydro'))
 %% MATERIAL AND BOUNDARY PARAMETERS
-windows_type=5; % number of configuration of Dirichlet windows
+ % number of configuration of Dirichlet windows
 p=1e6; % pressure on Dir. b. c.
 f = @(x)(0+0*x(:,1)+0*x(:,2)); % zatizeni
 g_N=@(x)(0+0*x(:,1)+0*x(:,2)); % Neumann
@@ -44,28 +44,50 @@ alfa_inter = alfa_inter_const*ones(no_intersections,1);
 % druha hodnota = a ... zacatek okna 
 % treti hodnota = b ... konec okna ... 0 < a < b <= 1
 % ctvrta hodnota - hodnota Dirichletovy podminky
-switch windows_type
-    case 1
-    Dirichlet_windows=[ 3   0.0     1.0     p
-                        1   0.0     0.5     0
-                        1   0.5     1.0     0];
-    case 2
-    Dirichlet_windows=[ 2   0.0     1.0     p
-                        4   0.0     0.5     0
-                        4   0.5     1.0     0];
-    case 3
-    Dirichlet_windows=[ 1   0.0     1.0     p
-                        3   0.0     0.5     0
-                        3   0.5     1.0     0];
-    case 4
-    Dirichlet_windows=[ 4   0.0     1.0     p
-                        2   0.0     0.5     0
-                        2   0.5     1.0     0];
-    case 5
-    Dirichlet_windows=[ 2   0    1    p
-                        4   0    1     0];
-end
-Dirichlet_windows(:,2:3)=Dirichlet_windows(:,2:3);
+% switch windows_type
+%     case 1
+%     Dirichlet_windows=[ 3   0.0     1.0     p
+%                         1   0.0     0.5     0
+%                         1   0.5     1.0     0];
+%     case 2
+%     Dirichlet_windows=[ 2   0.0     1.0     p
+%                         4   0.0     0.5     0
+%                         4   0.5     1.0     0];
+%     case 3
+%     Dirichlet_windows=[ 1   0.0     1.0     p
+%                         3   0.0     0.5     0
+%                         3   0.5     1.0     0];
+%     case 4
+%     Dirichlet_windows=[ 4   0.0     1.0     p
+%                         2   0.0     0.5     0
+%                         2   0.5     1.0     0];
+%     case 5
+%     Dirichlet_windows=[ 2   0    1    p
+%                         4   0    1     0];
+% end
+% Dirichlet_windows(:,2:3)=Dirichlet_windows(:,2:3);
+
+Dirichlet_windows = D_windows( cislo_ulohy,p,n_windows,1/50 );
 
 %% MATRICES ASSEMBLING
 [u0, A, b, freeNode, downEdge, rightEdge, upEdge, leftEdge ] = FEM_windows( POINTS, ELEMENTS, Nxy-1, bdFlag, k, f, Dirichlet_windows, g_N );
+
+hydro_problem.no_fractures=no_fractures;
+hydro_problem.mat_frac=mat_frac;
+hydro_problem.fracture_matrice=fracture_matrice;
+hydro_problem.POINTS=POINTS;
+hydro_problem.intersections=intersections;
+hydro_problem.alfa_inter=alfa_inter;
+hydro_problem.lengths=lengths;
+hydro_problem.A=A;
+hydro_problem.freeNode=freeNode;
+hydro_problem.b=b;
+hydro_problem.u0=u0;
+hydro_problem.ELEMENTS=ELEMENTS;
+
+hydro_problem.Dirichlet_windows=Dirichlet_windows;
+hydro_problem.downEdge=downEdge;
+hydro_problem.rightEdge=rightEdge;
+hydro_problem.upEdge=upEdge;
+hydro_problem.leftEdge=leftEdge;
+hydro_problem.helem=Nxy-1;

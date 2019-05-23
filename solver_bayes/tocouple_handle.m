@@ -53,7 +53,7 @@ u0(freeNode)=y;
 % set(gca,'YScale','log')
 % u0(freeNode)=x;
 
-fprintf('res_hydro=%d\n',norm(A*u0(freeNode)-b0));
+%fprintf('res_hydro=%d\n',norm(A*u0(freeNode)-b0));
 PRESSURE = extract_pressure(u0,size(intersections,1),lengths);
 
 Dirichlet_windows=hydro_problem.Dirichlet_windows;
