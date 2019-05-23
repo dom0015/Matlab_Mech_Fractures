@@ -16,3 +16,7 @@ precomp_overlap\.m~
 *.mat
 
 *.fig
+
+coupling_mech_facture/exported_pictures/
+
+*.pdf

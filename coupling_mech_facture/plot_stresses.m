@@ -26,7 +26,7 @@ P=[x(t(:));y(t(:))];
 T=reshape(1:size(P,2),[3 size(P,2)/3]);
 % create random u for testing   
  tmp=[stres1 stres1 stres1]';
-h=trisurf(T',P(1,:),P(2,:),tmp(:)/1e6);
+h=trisurf(T',P(1,:),P(2,:),tmp(:));
 h.EdgeColor = 'none';
 h.FaceAlpha=0.5;
 colormap jet(1000)

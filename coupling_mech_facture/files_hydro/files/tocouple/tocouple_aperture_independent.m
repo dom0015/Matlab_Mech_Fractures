@@ -4,9 +4,7 @@ windows_type=5; % number of configuration of Dirichlet windows
 p=1e6; % pressure on Dir. b. c.
 f = @(x)(0+0*x(:,1)+0*x(:,2)); % zatizeni
 g_N=@(x)(0+0*x(:,1)+0*x(:,2)); % Neumann
-mat_omega_const = 1e-15; % material - matrice
-mat_frac_const = 1e-6; % material - fractures
-alfa_inter_const = 1e-5;
+
 
 % %% GEOMETRY PARAMETERS - defined in elasticity
 % L1=10; L2=10;

@@ -1,31 +1,34 @@
 FETI_problem_assembly
 
-SMALSE_params.rel=1.0e-10;
+SMALSE_params.rel=1.0e-2;
 SMALSE_params.rho0=1;
 SMALSE_params.betarho=2;
 SMALSE_params.Gama = 1;
 SMALSE_params.M_start=0.5;
-SMALSE_params.tol_to_update=1e-12;
+SMALSE_params.tol_to_update=1e-4;
 SMALSE_params.maxiter_cg = 100000;
 SMALSE_params.type='m';
-SMALSE_params.print=true;
+SMALSE_params.print=false;
 problem_setting.B_i=[];
 problem_setting.lambda_ker=[];
 
-frac_press={@(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-    @(x)2*frac_press_val/5+0*x,@(x)2*frac_press_val/5+0*x
-    @(x)frac_press_val/5.1+0*x,@(x)frac_press_val/5+0*x
-    @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-    @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-    @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-    @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
-    @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x};
+% frac_press={@(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+%     @(x)2*frac_press_val/5+0*x,@(x)2*frac_press_val/5+0*x
+%     @(x)frac_press_val/5.1+0*x,@(x)frac_press_val/5+0*x
+%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x
+%     @(x)frac_press_val/5+0*x,@(x)frac_press_val/5+0*x};
 
 %% HYDRO
+mat_omega_const=1e-15;
+mat_frac_const=1e-6;
+alfa_inter_const=1e-5;
 tocouple_aperture_independent
 %% depends on fracture aperture
 %d = exp([-6 -8.5 -7 -6 -8.5 -7 -6 -8.5 -7 -6 -8.5 -7 -6 -8.5 -7])/100;
-d = 1e-5*ones(no_fractures,1);
+d = 1e-4*ones(no_fractures,1);
 D = cell(no_fractures,1);
 for i=1:no_fractures
     D{i} = d(i)*ones(lengths(i)-1,1);
@@ -34,8 +37,9 @@ D_old=D;
 
 res_d=[];
 res_press=[];
-alpha=1;
-beta=1e1;
+alpha=0.6;
+beta=1e-1;
+tic;
 for i=1:200
     
     [PRESSURE,u0_,ugrad]=tocouple_handle(D,no_fractures,mat_frac,fracture_matrice,...
@@ -89,6 +93,9 @@ for i=1:200
     PRESSURE_old=PRESSURE;
     ugrad_old=ugrad;
     fprintf('alpha=%d beta=%d\n',alpha,beta);
+    if i>2
+        SMALSE_params.rel=tmp2(end)/10;
+    end
 %     if i>2
 %         if tmp(end)<=min(tmp)
 %            alpha=min(1,alpha*1.1); 
@@ -101,6 +108,7 @@ for i=1:200
 %     if i>1
 %         alpha=min(0.2,alpha^(0.99));
 %     end
+alpha=min(1,alpha*1.1);
     beta=min(1,beta^(0.5)+1e-1);
     if i>1
     if beta==1 && alpha>=0.2 && tmp(end)<1e-6 && tmp2(end)<1e-6
@@ -108,5 +116,5 @@ for i=1:200
     end
     end
 end
-
+toc
 [fig_id1,fig_id2,fig_id3] = plot_stresses(problem_setting.x_elast,NAPETI,problem_setting.sub_elem,problem_setting.sub_nodes,POINTS,problem_setting.fracture_matrice);
