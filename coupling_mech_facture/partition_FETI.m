@@ -1,6 +1,6 @@
 function [map,sub_nodes,sub_elem,sub_material_constants,sub_volume_force,...
     sub_boundary,sub_boundary_val,sub_sizes,glueB,node_map_on_double,...
-    plot_func,plot_func2,divide_neumann_boundary]=partition_FETI...
+    plot_func,plot_func2,divide_neumann_boundary,divide_neumann_boundary_and_force]=partition_FETI...
     (nodes,elems,material_constants,volume_force,Neumann_boundaries,N_bound_value,partitions)
 
 n=length(nodes);
@@ -25,6 +25,7 @@ fprintf('edgecut=%d\n',edgecut);
     Neumann_boundaries,N_bound_value,map);
 
 divide_neumann_boundary=@(N_bound,N_bound_value)subdomains_Neumann(N_bound,N_bound_value,map);
+divide_neumann_boundary_and_force=@(N_bound,N_bound_value,volume_force)subdomains_Neumann_force(N_bound,N_bound_value,volume_force,map);
 
 %% plotting ---------------------------------------------------------------
 % my_trisurf(nodes,elems,map);
@@ -139,7 +140,20 @@ for i=1:n
     sub_boundary_val{i}=tmp_cell;
 end
 end
-
+function [sub_boundary,sub_boundary_val,sub_volume_force]=subdomains_Neumann_force(Neumann_boundaries,N_bound_value,volume_force,map)
+n=max(map)+1;
+sub_boundary=cell(n,1);
+sub_volume_force=cell(n,1);
+sub_boundary_val=cell(n,1);
+for i=1:n
+    tmp_loc_elem=map==(i-1);
+    sub_boundary{i}=Neumann_boundaries(tmp_loc_elem,:);
+    tmp_cell{1}=N_bound_value{1}(tmp_loc_elem,:);
+    tmp_cell{2}=N_bound_value{2}(tmp_loc_elem,:);
+    sub_boundary_val{i}=tmp_cell;
+    sub_volume_force{i}=volume_force(tmp_loc_elem,:);
+end
+end
 
 
 %%

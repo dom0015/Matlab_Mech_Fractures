@@ -52,7 +52,7 @@ else
 end
 
 
-epsr = rel*norm(b0);
+epsr = max(rel*norm(b0),1e-18);
 
 ncg = 0;
 ne = 0;
@@ -223,7 +223,7 @@ while (1)
     updatednow=false;
     if ~isempty(update_G)
         if norm(Gu)<tol_to_update
-            tol_to_update=norm(Gu)/10;
+            tol_to_update=max(norm(Gu)/10,epsr);
             [F,b0,G,c,update_data,geom_res,~,alpha] = update_G(u,update_data);
             F=F/lFl_*lQl_;
             b0=b0/lFl_*lQl_;

@@ -1,20 +1,20 @@
 addpath(genpath('files_elasticity'))
 addpath(genpath('files_hydro'))
 %% PARAMETERS -------------------------------------------------------------
-Nxy=101;
+Nxy=201;
 L1=1; L2=1;
-sumbdomains_FETI=ceil(Nxy/15)^2;
+sumbdomains_FETI=ceil(Nxy/20)^2;
 
-mat_const=10000*100000;
+mat_const=1e9;
 frac_press_val=1;
-frac_start_end={[0.5 0.2], [0.9 0.2]
+frac_start_end={[0.3 0.2], [0.9 0.2]
      [0.5 0.1], [0.9 0.5]
- %    [0.8 0.3], [0.8 0.9]
-     [0.1 0.8], [0.9 0.8]
+     [0.8 0.3], [0.8 0.6]
+     [0.3 0.8], [0.9 0.8]
      [0.1 0.3], [0.7 0.9]
-     [0.1 0.4], [0.7 0.4]
-     [0.4 0.1], [0.4 0.5]
-     [0.1 0.6], [0.7 0.6]};
+     [0.3 0.4], [0.7 0.4]
+     [0.4 0.1], [0.4 0.7]
+     [0.1 0.6], [0.5 0.6]};
 
 %% BASIC GEOMETRY ---------------------------------------------------------
 [POINTS,ELEMENTS,Dirichlet_boundaries,Neumann_boundaries,Neumann_normalx,Neumann_normaly,fractures,...
@@ -49,7 +49,7 @@ N_bound_value{2}=Neumann_normaly;
 
 %% FETI partitioning ------------------------------------------------------
 [map,sub_nodes,sub_elem,sub_material_constants,sub_volume_force,...
-    sub_neumann,sub_neumann_val,sub_sizes,B_FETI,node_map_on,plot_func,plot_func2,divide_neumann_boundary]=...
+    sub_neumann,sub_neumann_val,sub_sizes,B_FETI,node_map_on,plot_func,plot_func2,divide_neumann_boundary,divide_neumann_boundary_and_force]=...
     partition_FETI(POINTS,ELEMENTS,material_constants,volume_force,N_bound,N_bound_value,sumbdomains_FETI);
 
 %% Elasticity sub-Matrices assembly ---------------------------------------
@@ -58,8 +58,9 @@ A_pinv=cell(sumbdomains_FETI,1);
 A_null=cell(sumbdomains_FETI,1);
 singular_values=zeros(sumbdomains_FETI,1);
 b=cell(sumbdomains_FETI,1);
+NAPETI=cell(sumbdomains_FETI,1);
 for i=1:sumbdomains_FETI
-    [ATemp,b{i}]=elasticity_assembly(sub_nodes{i},sub_elem{i},...
+    [ATemp,b{i},NAPETI{i}]=elasticity_assembly(sub_nodes{i},sub_elem{i},...
         sub_material_constants{i},sub_volume_force{i},...
         sub_neumann{i},sub_neumann_val{i});
     [APinvTemp,AKerTemp,singular_values(i)] = pinv_null(ATemp,100);
@@ -78,6 +79,7 @@ B_dirichlet_rhs=u_0(dirichlet_nodes_old);
 %% Matrix assembly --------------------------------------------------------
 mat_scale=max(singular_values);
 A=blkdiag(A{:});
+NAPETI=blkdiag(NAPETI{:});
 b=cat(1,b{:});
 A_plus = blkdiag(A_pinv{:});
 R = blkdiag(A_null{:});
@@ -103,6 +105,7 @@ problem_setting.sub_nodes=sub_nodes;
 problem_setting.sub_elem=sub_elem;
 problem_setting.fracture_elem_map=fracture_elem_map;
 problem_setting.divide_neumann_boundary=divide_neumann_boundary;
+problem_setting.divide_neumann_boundary_and_force=divide_neumann_boundary_and_force;
 problem_setting.Neumann_normalx=Neumann_normalx;
 problem_setting.Neumann_normaly=Neumann_normaly;
 problem_setting.N_bound_fractures=N_bound_fractures;

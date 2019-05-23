@@ -14,3 +14,5 @@ precomp_overlap\.m~
 *.m~
 
 *.mat
+
+*.fig
