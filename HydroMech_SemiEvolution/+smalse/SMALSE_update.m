@@ -262,6 +262,8 @@ while (1)
         break
     end
 end
+Vgp=[Vgp norm(gp)];
+Vnarus=[Vnarus norm(Gu)];
 fprintf('Outer it=%d CG iter=%d norm(gp)=%d norm(G*u)=%d, M=%d, rho=%d\n',nout, ncg,Vgp(end),Vnarus(end),M,rho)
 
 if printres

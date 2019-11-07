@@ -12,7 +12,7 @@ D = cell(no_fractures,1);
 for i=1:no_fractures
     D{i} = initial_aperture(i)*ones(lengths(i)-1,1);
 end
-
+%load('D_fin.mat')
 res_d=[];
 res_press=[];
 alpha=1;
@@ -23,11 +23,18 @@ tic;
 kk=0;
 rel_D_=[];
 rel_P_=[];
+kkk=[];
 response_D = cell2mat(D);
 %u_old = 0*u_old;
 for i=1:SMALSE_params.coupling_iter
+    ugrad_old=ugrad;
     [PRESSURE__,u0_,ugrad,Q,PRESSURE,frac_grad]=coup.hydro_SemiEvolution...
         (D,hydro_problem,u_old);%,elast_div_diff);
+    
+    if i>1
+        max(abs(ugrad_old-ugrad))
+        kkk=[kkk max(abs(ugrad_old-ugrad))];
+    end
     u_old = u0_;
     tmp=cell2mat(PRESSURE__);
     res_press(:,i)=tmp(:);
@@ -44,6 +51,9 @@ for i=1:SMALSE_params.coupling_iter
     
     res_d(:,i)=cell2mat(D);
     
+    if i>1
+        fprintf('----%d----',max((max(res_d(:,i)./res_d(:,i-1),res_d(:,i-1)./res_d(:,i))))-1)
+    end
     rel_P=sqrt(sum((res_press(:,1:end-1)-res_press(:,2:end)).^2,1))./sqrt(sum((res_press(:,2:end)).^2,1));
     rel_D=sqrt(sum((res_d(:,1:end-1)-res_d(:,2:end)).^2,1))./sqrt(sum((res_d(:,2:end)).^2,1));
     

@@ -103,7 +103,7 @@ for i=1:3
     ii(:)=elem(:,i);
     sA=k.*dot(ve(:,:,i),ve(:,:,i),2)./(4*area);
     A=A+sparse(ii,ii,sA,N,N);
-    sM=k.*(2*area)/12;
+    sM=(2*area)/12;
     M=M+sparse(ii,ii,sM,N,N);
 end
 for i=1:2
@@ -113,7 +113,7 @@ for i=1:2
         sA=k.*dot(ve(:,:,i),ve(:,:,j),2)./(4*area);
         A=A+sparse(ii,jj,sA,N,N);
         A=A+sparse(jj,ii,sA,N,N);
-        sM=k.*(2*area)/24;
+        sM=(2*area)/24;
         M=M+sparse(ii,jj,sM,N,N);
         M=M+sparse(jj,ii,sM,N,N);
     end

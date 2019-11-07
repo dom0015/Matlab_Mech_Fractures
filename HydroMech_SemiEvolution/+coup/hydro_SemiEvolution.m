@@ -1,8 +1,10 @@
 function [PRESSURE,u0,GRAD,Q,PRESSURE_diff,frac_grad,blocks] = ...
     tocouple_handle_modif_time(D,hydro_problem,u0_old)%,divergence_diff)
+
+global const_delta_t_scale
 const_domain = hydro_problem.const_cs_domain;
 const_fracture = hydro_problem.const_cs_fracture;
-const_delta_t = hydro_problem.const_delta_t;
+const_delta_t = hydro_problem.const_delta_t*const_delta_t_scale;
 no_fractures=hydro_problem.no_fractures;
 mat_frac=hydro_problem.mat_frac;
 fracture_matrice=hydro_problem.fracture_matrice;
@@ -79,10 +81,15 @@ b=b+MAT_TIME(freeNode,freeNode)*u0_old(freeNode);
 % b=b-divergence_rhs(freeNode)/const_delta_t;
 x=MAT\b;
 y=y+x;
-
+fprintf('     %d     ',norm(norm(u0_old(freeNode)-y)/max(y)));
+const_delta_t_scale=min(const_delta_t_scale*max(min(0.1/(norm(u0_old(freeNode)-y)/max(y)),1.5),0.5),10000000)
+if max(min(0.1/(norm(u0_old(freeNode)-y)/max(y)),1.5),0.5)<1
+   fprintf('\n xxxxxxxxxxxxxxxx \n') 
+end
 fprintf('res_hydro=%d\n',norm(MAT*y-b0));
 end
 u0(freeNode)=y;
+
 
 idx_modif = [true(length(A),1); false(length(Au),1); true(length(F_stif),1)];
 PRESSURE = coup.extract_pressure(u0(idx_modif),size(intersections,1),lengths);
