@@ -1,10 +1,10 @@
 function [PRESSURE,u0,GRAD,Q,PRESSURE_diff,frac_grad,blocks] = ...
-    tocouple_handle_modif_time(D,hydro_problem,u0_old)%,divergence_diff)
+    hydro_basicSemiEvolution(D,hydro_problem,u0_old)%,divergence_diff)
 
 global const_delta_t_scale
 const_domain = hydro_problem.const_cs_domain;
 const_fracture = hydro_problem.const_cs_fracture;
-const_delta_t = hydro_problem.const_delta_t*const_delta_t_scale;
+const_delta_t = hydro_problem.const_delta_t;
 no_fractures=hydro_problem.no_fractures;
 mat_frac=hydro_problem.mat_frac;
 fracture_matrice=hydro_problem.fracture_matrice;
@@ -46,17 +46,32 @@ G=[G; zeros(no_intersections,size(G,2))];
 %[B, freeNode, b, u0 ] = a_hyd.matrices_assembling( A, I, M, F, freeNode, freenode_f, b, b_f, u0, u_f );
 N_d_node = length(A);
 N_f_elem = length(Au);
+freeNode_u=freeNode;
 freeNode = [freeNode; (1:N_f_elem)'+N_d_node; freeNode_f+N_d_node+N_f_elem ];
 b = [b; zeros(N_f_elem,1); 0*b_f];
 u0 = [u0; zeros(N_f_elem,1); 0*u_f];
 
-k_scale=1;%e-15;
+k_scale=1e-7;
 MAT = [A+const_domain/const_delta_t*M  -k_scale*B'  zeros(N_d_node,length(F_stif));
        -k_scale*B  -k_scale^2*Au  k_scale*G';
        zeros(length(F_stif),N_d_node)  k_scale*G  F_stif+const_fracture/const_delta_t*F_mass];
 MAT_TIME = [const_domain/const_delta_t*M  0*B'  zeros(N_d_node,length(F_stif));
             0*B        0*Au  0*G';
        zeros(length(F_stif),N_d_node)  0*G  const_fracture/const_delta_t*F_mass];
+   
+%%
+[I,M]=a_hyd.interaction_matrix( fracture_matrice,node );
+[F_stif,b_f,u_f,freeNode_f,F_mass] = fractures_matrix_modif( node,fracture_matrice,intersections,alfa_inter,lengths);
+freeNode=hydro_problem.freeNode;
+[MAT, freeNode, b, u0 ] = a_hyd.matrices_assembling( A, I, M, F_stif, freeNode, freeNode_f, b, b_f, u0, u_f );
+whos MAT freeNode
+disp(max(freeNode))
+MAT_TIME = [const_domain/const_delta_t*M  zeros(N_d_node,length(F_stif));
+       zeros(length(F_stif),N_d_node)  const_fracture/const_delta_t*F_mass];
+
+
+%%
+
 blocks = [];
 blocks.A = A;
 blocks.B = B; 
@@ -81,11 +96,6 @@ b=b+MAT_TIME(freeNode,freeNode)*u0_old(freeNode);
 % b=b-divergence_rhs(freeNode)/const_delta_t;
 x=MAT\b;
 y=y+x;
-fprintf('     %d     ',norm(norm(u0_old(freeNode)-y)/max(y)));
-const_delta_t_scale=min(const_delta_t_scale*max(min(0.1/(norm(u0_old(freeNode)-y)/max(y)),1.5),0.5),10000000)
-if max(min(0.1/(norm(u0_old(freeNode)-y)/max(y)),1.5),0.5)<1
-   fprintf('xxxxxxxxxxxxxxxx') 
-end
 fprintf('res_hydro=%d\n',norm(MAT*y-b0));
 end
 u0(freeNode)=y;

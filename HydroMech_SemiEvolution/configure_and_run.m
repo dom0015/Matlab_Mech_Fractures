@@ -43,7 +43,7 @@ SMALSE_params.maxiter_cg = 3000;
 SMALSE_params.type='m';
 SMALSE_params.print=false;
 SMALSE_params.print_couple=true;
-SMALSE_params.coupling_iter=2000;
+SMALSE_params.coupling_iter=100;
 SMALSE_params.eps_coupling=1e-6;
 
 [elast_problem,shared_data] = elast_preparation(elast_problem,shared_data);

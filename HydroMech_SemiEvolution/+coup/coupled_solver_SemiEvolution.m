@@ -28,7 +28,7 @@ response_D = cell2mat(D);
 %u_old = 0*u_old;
 for i=1:SMALSE_params.coupling_iter
     ugrad_old=ugrad;
-    [PRESSURE__,u0_,ugrad,Q,PRESSURE,frac_grad]=coup.hydro_SemiEvolution...
+    [PRESSURE__,u0_,ugrad,Q,PRESSURE,frac_grad]=coup.hydro_basicSemiEvolution...
         (D,hydro_problem,u_old);%,elast_div_diff);
     
     if i>1
