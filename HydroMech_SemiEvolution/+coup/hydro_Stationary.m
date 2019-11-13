@@ -36,7 +36,7 @@ end
 
 [fracture_matrice] = a_hyd.fracture2cells_parameters( fracture_matrice,ALFA,MAT_FRAC );
 
-[I,M] = a_hyd.interaction_matrix( fracture_matrice,node );
+%[I,M] = a_hyd.interaction_matrix( fracture_matrice,node );
 [F,b_f,u_f,freeNode_f] = fractures_matrix_modif( node,fracture_matrice,intersections,alfa_inter,lengths);
 [B,G,Au] = matrices_modif_lin( fracture_matrice,node );
 G=[G; zeros(no_intersections,size(G,2))];
@@ -47,7 +47,7 @@ freeNode = [freeNode; (1:N_f_elem)'+N_d_node; freeNode_f+N_d_node+N_f_elem ];
 b = [b; zeros(N_f_elem,1); 0*b_f];
 u0 = [u0; zeros(N_f_elem,1); 0*u_f];
 
-k_scale=1e-15;
+k_scale=1;
 MAT = [A -k_scale*B' zeros(N_d_node,length(F));
        -k_scale*B  -k_scale^2*Au  k_scale*G';
        zeros(length(F),N_d_node)  k_scale*G  F];

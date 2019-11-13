@@ -1,10 +1,6 @@
-function [PRESSURE,u0,GRAD,Q,PRESSURE_diff,frac_grad,blocks] = ...
-    hydro_basicSemiEvolution(D,hydro_problem,u0_old)%,divergence_diff)
+function [PRESSURE,u0,GRAD,Q,PRESSURE_diff,frac_grad,blocks] = hydro_basicStationary(D,hydro_problem)
 
-global const_delta_t_scale
-const_domain = hydro_problem.const_cs_domain;
-const_fracture = hydro_problem.const_cs_fracture;
-const_delta_t = hydro_problem.const_delta_t;
+
 no_fractures=hydro_problem.no_fractures;
 mat_frac=hydro_problem.mat_frac;
 fracture_matrice=hydro_problem.fracture_matrice;
@@ -14,11 +10,12 @@ no_intersections = size(intersections,1);
 alfa_inter=hydro_problem.alfa_inter;
 lengths=hydro_problem.lengths;
 A=hydro_problem.A;
-M=hydro_problem.M;
 freeNode=hydro_problem.freeNode;
 b=hydro_problem.b;
 u0=hydro_problem.u0;
 elem=hydro_problem.ELEMENTS;
+
+
 
 %TOCOUPLE_HANDLE Summary of this function goes here
 %   Detailed explanation goes here
@@ -39,41 +36,27 @@ end
 
 [fracture_matrice] = a_hyd.fracture2cells_parameters( fracture_matrice,ALFA,MAT_FRAC );
 
-%[I,M] = a_hyd.interaction_matrix( fracture_matrice,node );
-[F_stif,b_f,u_f,freeNode_f,F_mass] = fractures_matrix_modif( node,fracture_matrice,intersections,alfa_inter,lengths);
-[B,G,Au] = matrices_modif_lin( fracture_matrice,node );
-G=[G; zeros(no_intersections,size(G,2))];
-%[B, freeNode, b, u0 ] = a_hyd.matrices_assembling( A, I, M, F, freeNode, freenode_f, b, b_f, u0, u_f );
+[I,M] = a_hyd.interaction_matrix( fracture_matrice,node );
+[F_stif,b_f,u_f,freeNode_f,F_mass] = fractures_matrix_modif( node,fracture_matrice,intersections,alfa_inter*0,lengths);
+F=F_stif+2*F_mass;
+%[B,G,Au] = matrices_modif_lin( fracture_matrice,node );
+%G=[G; zeros(no_intersections,size(G,2))];
+[B, freeNode, b, u0 ] = a_hyd.matrices_assembling( A, I, M, F, freeNode, freeNode_f, b, b_f, u0, u_f );
 N_d_node = length(A);
-N_f_elem = length(Au);
-freeNode_u=freeNode;
-freeNode = [freeNode; (1:N_f_elem)'+N_d_node; freeNode_f+N_d_node+N_f_elem ];
-b = [b; zeros(N_f_elem,1); 0*b_f];
-u0 = [u0; zeros(N_f_elem,1); 0*u_f];
-
-k_scale=1e-7;
-MAT = [A+const_domain/const_delta_t*M  -k_scale*B'  zeros(N_d_node,length(F_stif));
-       -k_scale*B  -k_scale^2*Au  k_scale*G';
-       zeros(length(F_stif),N_d_node)  k_scale*G  F_stif+const_fracture/const_delta_t*F_mass];
-MAT_TIME = [const_domain/const_delta_t*M  0*B'  zeros(N_d_node,length(F_stif));
-            0*B        0*Au  0*G';
-       zeros(length(F_stif),N_d_node)  0*G  const_fracture/const_delta_t*F_mass];
-   
-%%
-[I,M]=a_hyd.interaction_matrix( fracture_matrice,node );
-[F,b_f,u_f,freenode_f] = a_hyd.fractures_matrix( node,fracture_matrice,intersections,alfa_inter,lengths);
-[B, freeNode, b, u0 ] = a_hyd.matrices_assembling( A, I, M, F, freeNode, freenode_f, b, b_f, u0, u_f );
-MAT = B;
+%N_f_elem = length(Au);
 
 
-%%
-
+%k_scale=1e-15;
+% MAT = [A -k_scale*B' zeros(N_d_node,length(F));
+%        -k_scale*B  -k_scale^2*Au  k_scale*G';
+%        zeros(length(F),N_d_node)  k_scale*G  F];
+MAT=B;
 blocks = [];
 blocks.A = A;
 blocks.B = B; 
-blocks.Au = Au;
-blocks.G = G;
-blocks.F = F_stif;
+%blocks.Au = Au;
+%blocks.G = G;
+blocks.F = F;
 blocks.b = b;
 blocks.freeNode = freeNode;
 blocks.u0 = u0;
@@ -84,20 +67,15 @@ b=b0;
 x=0*b;
 y=x;
 for i=1:1
-% b=b-MAT*x;
-b=b+MAT_TIME(freeNode,freeNode)*u0_old(freeNode);
-
-% divergence_rhs = zeros(length(MAT_TIME),1);
-% divergence_rhs(1:length(A),:) = divergence_to_rhs(hydro_problem,divergence_diff);
-% b=b-divergence_rhs(freeNode)/const_delta_t;
+b=b-MAT*x;
 x=MAT\b;
 y=y+x;
+
 fprintf('res_hydro=%d\n',norm(MAT*y-b0));
 end
 u0(freeNode)=y;
 
-
-idx_modif = [true(length(A),1); false(length(Au),1); true(length(F_stif),1)];
+idx_modif = [true(length(A),1); true(length(F),1)];
 PRESSURE = coup.extract_pressure(u0(idx_modif),size(intersections,1),lengths);
 
 n=length(PRESSURE);

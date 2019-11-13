@@ -12,13 +12,20 @@ D = cell(no_fractures,1);
 for i=1:no_fractures
     D{i} = initial_aperture(i)*ones(lengths(i)-1,1);
 end
-load('D_fin.mat')
+%load('D_fin.mat')
 res_d=[];
 res_press=[];
 alpha=1;
 flag=0;
 tic;
 [PRESSURE__,u_old,ugrad,Q,PRESSURE]=coup.hydro_Stationary(D,hydro_problem);
+[elast_problem] = feti.assembly_FETI_frac_rhs(elast_problem,PRESSURE,-ugrad*par_BiotWillis);
+[D,elast_problem,x_elast] = smalse.SMALSE_solver(elast_problem,SMALSE_params);
+for j=1:length(D)
+    D{j}=max(D{j},0)+par_a0;
+end
+
+D_old=D;
 % elast_div=ugrad(:,1)*0; elast_div_diff=elast_div;
 kk=0;
 rel_D_=[];
@@ -26,34 +33,67 @@ rel_P_=[];
 kkk=[];
 response_D = cell2mat(D);
 %u_old = 0*u_old;
+trashold=1;
 for i=1:SMALSE_params.coupling_iter
+    if i>3
+        if norm(response_D(:,end)-response_D(:,end-1))>1.2*norm(response_D(:,end)-response_D(:,end-2))
+            trashold=trashold*0.7;
+        end
+    end
+    
     ugrad_old=ugrad;
     [PRESSURE__,u0_,ugrad,Q,PRESSURE,frac_grad]=coup.hydro_SemiEvolution...
         (D,hydro_problem,u_old);%,elast_div_diff);
     
-    if i>1
-        max(abs(ugrad_old-ugrad))
-        kkk=[kkk max(abs(ugrad_old-ugrad))];
+    
+    shift=max(abs(ugrad_old(:)-ugrad(:)))/max(abs(ugrad(:)));
+    kkk=[kkk shift];
+    
+    
+    
+    if shift<trashold/2
+        hydro_problem.const_delta_t=hydro_problem.const_delta_t*2;
     end
+    cas_krok(i)=hydro_problem.const_delta_t;
+    fprintf('  Shift: %d, delta T: %d, thashold: %d\n',shift,hydro_problem.const_delta_t,trashold)
+    
+
+    
+    while shift>=trashold
+        hydro_problem.const_delta_t=hydro_problem.const_delta_t*0.5;
+        [PRESSURE__,u0_,ugrad,Q,PRESSURE,frac_grad]=coup.hydro_SemiEvolution(D,hydro_problem,u_old);
+        shift=max(abs(ugrad_old(:)-ugrad(:)))/max(abs(ugrad(:)));
+        fprintf('    Correction: Shift: %d, delta T: %d \n',shift,hydro_problem.const_delta_t)
+    end
+    
+    
+    
     u_old = u0_;
     tmp=cell2mat(PRESSURE__);
     res_press(:,i)=tmp(:);
     
     [elast_problem] = feti.assembly_FETI_frac_rhs(elast_problem,PRESSURE,-ugrad*par_BiotWillis);
     [D,elast_problem,x_elast] = smalse.SMALSE_solver(elast_problem,SMALSE_params);
+    
+    
+    [~,~,ugrad_stationary,~,~]=coup.hydro_Stationary(D,hydro_problem);
+    sta_dist=max(abs(ugrad_stationary(:)-ugrad(:)))/max(abs(ugrad(:)));
+    fprintf('  Stationary distance: %d\n',sta_dist)
+    trashold=trashold*0.9+(sta_dist/2)*0.1;
+    
     %     elast_div_old = elast_div;
     %     elast_div = elasticity_divergence(elast_problem,x_elast,SMALSE_params.print);
     %     elast_div_diff = (elast_div - elast_div_old)*par_BiotWillis;
     response_D = [response_D cell2mat(D)];
     for j=1:length(D)
-        D{j}=max(D{j},0)+par_a0;
+        D{j}=exp((log(max(D{j},0)+par_a0)*0.5+0.5*log(D_old{j})));
     end
-    
     res_d(:,i)=cell2mat(D);
     
-    if i>1
-        fprintf('----%d----',max((max(res_d(:,i)./res_d(:,i-1),res_d(:,i-1)./res_d(:,i))))-1)
-    end
+    
+    %     if i>1
+    %         fprintf('----%d----',max((max(res_d(:,i)./res_d(:,i-1),res_d(:,i-1)./res_d(:,i))))-1)
+    %     end
     rel_P=sqrt(sum((res_press(:,1:end-1)-res_press(:,2:end)).^2,1))./sqrt(sum((res_press(:,2:end)).^2,1));
     rel_D=sqrt(sum((res_d(:,1:end-1)-res_d(:,2:end)).^2,1))./sqrt(sum((res_d(:,2:end)).^2,1));
     
@@ -99,7 +139,7 @@ for i=1:SMALSE_params.coupling_iter
         end
     end
     
-    %     D_old=D;
+         D_old=D;
     %     PRESSURE_old=PRESSURE;
     %     ugrad_old=ugrad;
     %

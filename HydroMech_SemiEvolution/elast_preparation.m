@@ -32,17 +32,21 @@ d_trhlina=par_tloustka_trhliny*ones(no_fractures,1);
     mesh.create_geometry(Nxy,L1,L2,frac_start_end);
 
 for i=1:no_fractures
+    temp = fracture_matrice{i}.above_nodes(:);
+    idx_above = unique(temp(2:end-1));
+    temp = fracture_matrice{i}.under_nodes(:);
+    idx_under = unique(temp(2:end-1));
     if fracture_direction{i}=='h'
-        POINTS(fracture_matrice{i}.above_nodes(2:end,1),2)=POINTS(fracture_matrice{i}.above_nodes(2:end,1),2)+d_trhlina(i)/2;
-        POINTS(fracture_matrice{i}.under_nodes(2:end,1),2)=POINTS(fracture_matrice{i}.under_nodes(2:end,1),2)-d_trhlina(i)/2;
+        POINTS(idx_above,2)=POINTS(idx_above,2)+d_trhlina(i)/2;
+        POINTS(idx_under,2)=POINTS(idx_under,2)-d_trhlina(i)/2;
     elseif fracture_direction{i}=='v'
-        POINTS(fracture_matrice{i}.above_nodes(2:end,1),1)=POINTS(fracture_matrice{i}.above_nodes(2:end,1),1)-d_trhlina(i)/2;
-        POINTS(fracture_matrice{i}.under_nodes(2:end,1),1)=POINTS(fracture_matrice{i}.under_nodes(2:end,1),1)+d_trhlina(i)/2;
+        POINTS(idx_above,1)=POINTS(idx_above,1)-d_trhlina(i)/2;
+        POINTS(idx_under,1)=POINTS(idx_under,1)+d_trhlina(i)/2;
     else
-        POINTS(fracture_matrice{i}.above_nodes(2:end,1),1)=POINTS(fracture_matrice{i}.above_nodes(2:end,1),1)-sqrt((d_trhlina(i)/2)^2/2);
-        POINTS(fracture_matrice{i}.above_nodes(2:end,1),2)=POINTS(fracture_matrice{i}.above_nodes(2:end,1),2)+sqrt((d_trhlina(i)/2)^2/2);
-        POINTS(fracture_matrice{i}.under_nodes(2:end,1),1)=POINTS(fracture_matrice{i}.under_nodes(2:end,1),1)+sqrt((d_trhlina(i)/2)^2/2);
-        POINTS(fracture_matrice{i}.under_nodes(2:end,1),2)=POINTS(fracture_matrice{i}.under_nodes(2:end,1),2)-sqrt((d_trhlina(i)/2)^2/2);
+        POINTS(idx_above,1)=POINTS(idx_above,1)-sqrt((d_trhlina(i)/2)^2/2);
+        POINTS(idx_above,2)=POINTS(idx_above,2)+sqrt((d_trhlina(i)/2)^2/2);
+        POINTS(idx_under,1)=POINTS(idx_under,1)+sqrt((d_trhlina(i)/2)^2/2);
+        POINTS(idx_under,2)=POINTS(idx_under,2)-sqrt((d_trhlina(i)/2)^2/2);
     end
 end
 
@@ -116,7 +120,7 @@ elast_problem.B_e=B_e;
 elast_problem.b=b;
 elast_problem.R=R;
 elast_problem.c_e=c_e;
-elast_problem.c_i=c_i;
+elast_problem.c_i=[];
 elast_problem.B_iupdate=B_iupdate;
 elast_problem.plot_func2=plot_func2;
 elast_problem.mat_scale=mat_scale;

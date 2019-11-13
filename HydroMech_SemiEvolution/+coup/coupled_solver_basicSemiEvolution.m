@@ -1,4 +1,4 @@
-function [Q,D,PRESSURE,ugrad,iter,x_elast,response_D] = coupled_solver_SemiEvolution(hydro_problem,elast_problem,SMALSE_params,initial_aperture)
+function [Q,D,PRESSURE,ugrad,iter,x_elast,response_D] = coupled_solver_basicSemiEvolution(hydro_problem,elast_problem,SMALSE_params,initial_aperture)
 par_BiotWillis = hydro_problem.par_BiotWillis;
 par_a0 = hydro_problem.par_a0;
 no_fractures=hydro_problem.no_fractures;
@@ -18,7 +18,7 @@ res_press=[];
 alpha=1;
 flag=0;
 tic;
-[PRESSURE__,u_old,ugrad,Q,PRESSURE]=coup.hydro_Stationary(D,hydro_problem);
+[PRESSURE__,u_old,ugrad,Q,PRESSURE]=coup.hydro_basicStationary(D,hydro_problem);
 % elast_div=ugrad(:,1)*0; elast_div_diff=elast_div;
 kk=0;
 rel_D_=[];
@@ -28,7 +28,7 @@ response_D = cell2mat(D);
 %u_old = 0*u_old;
 for i=1:SMALSE_params.coupling_iter
     ugrad_old=ugrad;
-    [PRESSURE__,u0_,ugrad,Q,PRESSURE,frac_grad]=coup.hydro_SemiEvolution...
+    [PRESSURE__,u0_,ugrad,Q,PRESSURE,frac_grad]=coup.hydro_basicSemiEvolution...
         (D,hydro_problem,u_old);%,elast_div_diff);
     
     if i>1

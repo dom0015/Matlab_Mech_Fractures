@@ -19,21 +19,19 @@ hydro_problem.hydro_model=0;
 hydro_problem.alfa_inter_const=1e-5;
 par_permeabilita_trhliny = 1e-8;
 par_dynamicka_viskozita = 0.001;
-par_permeabilita_horniny = 1e-12*par_dynamicka_viskozita;
-hydro_problem.mat_omega_const=par_permeabilita_horniny/par_dynamicka_viskozita;
+par_permeabilita_horniny = 1e-15;%permeabilita
+hydro_problem.mat_omega_const=par_permeabilita_horniny/par_dynamicka_viskozita;%hydraulicka konduktivita
 hydro_problem.mat_frac_const=par_permeabilita_trhliny/par_dynamicka_viskozita;
 
 %% OTHER INPUT PARAMETERS
 par_storativity = 0.1449e-9;
 hydro_problem.const_cs_domain = par_storativity;
-hydro_problem.const_cs_fracture = par_storativity/1e-6;
+hydro_problem.const_cs_fracture = par_storativity*1e7;
 hydro_problem.par_BiotWillis = 0.89;
-hydro_problem.par_a0 = 1e-10;
-hydro_problem.const_delta_t = 1e-1;
-global const_delta_t_scale
-const_delta_t_scale=1;
+hydro_problem.par_a0 = 1e-6;
+hydro_problem.const_delta_t = 1e3;
 %% SOLVER PARAMETERS
-SMALSE_params.rel=1.0e-4;
+SMALSE_params.rel=1.0e-12;
 SMALSE_params.rho0=1;
 SMALSE_params.betarho=2;
 SMALSE_params.Gama = 1;
@@ -49,7 +47,7 @@ SMALSE_params.eps_coupling=1e-6;
 [elast_problem,shared_data] = elast_preparation(elast_problem,shared_data);
 hydro_problem = hydro_preparation( hydro_problem,shared_data );
 initial_aperture = 1e-4*ones(hydro_problem.no_fractures,1);
-[Q,D,PRESSURE,ugrad,iter,x_elast,response_D] = coup.coupled_solver_SemiEvolution(hydro_problem,elast_problem,SMALSE_params,initial_aperture);
+[Q,D,PRESSURE,ugrad,iter,x_elast,response_D] = coup.coupled_solver_adaptiveSemiEvolution(hydro_problem,elast_problem,SMALSE_params,initial_aperture);
 
 viz.fracture_displacement(elast_problem,x_elast)
 
