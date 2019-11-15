@@ -44,15 +44,17 @@ N_d_node = length(A);
    
 %%
 [I,M]=a_hyd.interaction_matrix( fracture_matrice,node );
-[F_stif,b_f,u_f,freeNode_f,F_mass] = fractures_matrix_modif( node,fracture_matrice,intersections,alfa_inter,lengths);
-[MAT, freeNode, b, u0 ] = a_hyd.matrices_assembling( A, I, M, F_stif, freeNode, freeNode_f, b, b_f, u0, u_f );
+
+[F,b_f,u_f,freeNode_f] = a_hyd.fractures_matrix( node,fracture_matrice,intersections,alfa_inter,lengths);
+[~,F_mass]= fractures_matrix_time_mass( node,fracture_matrice,intersections,alfa_inter,lengths);
+[MAT, freeNode, b, u0 ] = a_hyd.matrices_assembling( A, I, M, F, freeNode, freeNode_f, b, b_f, u0, u_f );
 % whos MAT freeNode
 % disp(max(freeNode))
 b = [b; 0*b_f];
 u0 = [u0; 0*u_f];
-MAT_TIME = [const_domain/const_delta_t*M  zeros(N_d_node,length(F_stif));
-       zeros(length(F_stif),N_d_node)  const_fracture/const_delta_t*F_mass];
-%MAT=MAT+MAT_TIME;
+MAT_TIME = [const_domain/const_delta_t*M  zeros(N_d_node,length(F));
+       zeros(length(F),N_d_node)  const_fracture/const_delta_t*F_mass];
+MAT=MAT+MAT_TIME;
 
 %%
 
@@ -60,15 +62,15 @@ MAT_TIME = [const_domain/const_delta_t*M  zeros(N_d_node,length(F_stif));
 MAT=MAT(freeNode,freeNode);
 b0=b(freeNode);
 
-b0=b0;%+MAT_TIME(freeNode,freeNode)*u0_old(freeNode);
+b0=b0+MAT_TIME(freeNode,freeNode)*u0_old(freeNode);
 
 x=MAT\b0;
 
-fprintf('res_hydro=%d\n',norm(MAT*x-b0));
+%fprintf('res_hydro=%d\n',norm(MAT*x-b0));
 
 u0(freeNode)=x;
 
-idx_modif = [true(length(A),1); true(length(F_stif),1)];
+idx_modif = [true(length(A),1); true(length(F),1)];
 PRESSURE = coup.extract_pressure(u0(idx_modif),size(intersections,1),lengths);
 
 n=length(PRESSURE);

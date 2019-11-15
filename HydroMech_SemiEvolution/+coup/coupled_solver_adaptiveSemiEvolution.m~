@@ -31,8 +31,8 @@ kkk=[];
 response_D = cell2mat(D);
 %u_old = 0*u_old;
 trashold=1;
-alpha=0.3;
-max_alpha=0.3;
+alpha=0.5;
+max_alpha=0.;
 for i=1:SMALSE_params.coupling_iter   
     ugrad_old=ugrad;
     [PRESSURE__,u0_,ugrad,Q,PRESSURE,frac_grad]=coup.hydro_basicSemiEvolution...
@@ -76,9 +76,9 @@ for i=1:SMALSE_params.coupling_iter
         tmp1=log(cell2mat(D));
         tmp2=log(cell2mat(D_old));
         tmp3=max(abs(tmp1-tmp2));
-        alpha_tmp=smooth_distance/tmp3;
+        alpha_tmp=D_log_distance_loc/tmp3;
         %alpha=min(alpha,alpha_tmp);
-        alpha=max(min(alpha_tmp,max_alpha),0.05);
+        alpha=max(min(alpha_tmp,max_alpha),0.00001);
     end
     
     for j=1:length(D)
@@ -91,27 +91,23 @@ for i=1:SMALSE_params.coupling_iter
         D_log_distance_old=max(abs(log(response_D(:,end))-log(response_D(:,end-2))));
         D_all_dist(i)=D_log_distance_loc;
         D_all_old_dist(i)=D_log_distance_old;
-        if D_log_distance_loc>D_log_distance_old
+        if D_log_distance_loc>D_log_distance_old*1.2
             max_alpha=max_alpha*0.8;
         end
         if D_log_distance_loc*1.2<D_log_distance_old
             max_alpha=max_alpha*1.05;
         end
         
-       max_alpha=max(min(max_alpha,0.3),0.01);
+       max_alpha=max(min(max_alpha,0.95),0.01);
         
         if D_log_distance_loc>1.2*D_log_distance_old
             trashold=trashold/2;
         end
-        fprintf('--- D_now: %d D_old: %d, alpha: %d max=%d',D_log_distance_loc,D_log_distance_old,alpha,max_alpha)
+        fprintf('--- D_now: %d D_old: %d, alpha: %d',D_log_distance_loc,D_log_distance_old,alpha)
     end
     fprintf('\n')
-    if hydro_problem.const_delta_t>1 && sta_dist<SMALSE_params.eps_coupling && D_log_distance_loc/alpha<SMALSE_params.eps_coupling
-        break
-    end
 end
 
-fprintf('iterations: %d\n',i);
 % figure
 % plot(time_change)
 % figure

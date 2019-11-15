@@ -28,7 +28,7 @@ d_trhlina=par_tloustka_trhliny*ones(no_fractures,1);
 
 %% BASIC GEOMETRY ---------------------------------------------------------
 [POINTS,ELEMENTS,Dirichlet_boundaries,Neumann_boundaries,Neumann_normalx,Neumann_normaly,fractures,...
-    fractures_positions,no_intersections,fractures_cell,fracture_matrice,fracture_elem_map] = ...
+    fractures_positions,no_intersections,fractures_cell,fracture_matrice,fracture_elem_map,intersections] = ...
     mesh.create_geometry(Nxy,L1,L2,frac_start_end);
 
 for i=1:no_fractures
@@ -43,6 +43,48 @@ for i=1:no_fractures
         POINTS(idx_above,1)=POINTS(idx_above,1)-d_trhlina(i)/2;
         POINTS(idx_under,1)=POINTS(idx_under,1)+d_trhlina(i)/2;
     else
+        %% krizeni sikme trhliny s rovnou
+        idx_above = fracture_matrice{i}.above_nodes(2:end,1);
+        idx_under = fracture_matrice{i}.under_nodes(2:end,1);
+        idx_bool = true(length(idx_above),1);
+        for j=1:no_intersections
+            if intersections(j,i)>0
+                % zjisti zda se sikma trhlina krizi s vodorovnou, svislou,
+                % nebo obema
+                temp=intersections(j,:)>0;
+                temp(i)=false;
+                temp = fracture_direction(temp);
+                if any(strcmp(temp,'h'))
+                    if any(strcmp(temp,'v')) % h+v
+                        dim=1;
+                        dim2=2;
+                        coef=-1;
+                        coef2=1;
+                    else % h
+                        dim=1;
+                        dim2=1;
+                        coef=1;
+                        coef2=1;
+                    end
+                else % v
+                    dim=2;
+                    dim2=2;
+                    coef=-1;
+                    coef2=-1;
+                end
+                idx=intersections(j,i)-1;
+                idx_bool(idx)=false;
+                POINTS(idx_above(idx),dim2)=POINTS(idx_above(idx),dim2)+d_trhlina(i)/2-coef*sqrt(2)*d_trhlina(i)/2;
+                POINTS(idx_under(idx),dim)=POINTS(idx_under(idx),dim)+d_trhlina(i)/2+coef2*sqrt(2)*d_trhlina(i)/2;
+                above2 = fracture_matrice{i}.above_nodes(idx,2);
+                under2 = fracture_matrice{i}.under_nodes(idx,2);
+                POINTS(above2,dim)=POINTS(above2,dim)-d_trhlina(i)/2-coef2*sqrt(2)*d_trhlina(i)/2;
+                POINTS(under2,dim2)=POINTS(under2,dim2)-d_trhlina(i)/2+coef*sqrt(2)*d_trhlina(i)/2;
+            end
+        end
+        idx_above = idx_above(idx_bool);
+        idx_under = idx_under(idx_bool);
+        %%
         POINTS(idx_above,1)=POINTS(idx_above,1)-sqrt((d_trhlina(i)/2)^2/2);
         POINTS(idx_above,2)=POINTS(idx_above,2)+sqrt((d_trhlina(i)/2)^2/2);
         POINTS(idx_under,1)=POINTS(idx_under,1)+sqrt((d_trhlina(i)/2)^2/2);
@@ -110,7 +152,7 @@ A_plus = blkdiag(A_pinv{:});
 R = blkdiag(A_null{:});
 B_e=[B_dirichlet;B_FETI];
 c_e=[B_dirichlet_rhs;zeros(size(B_FETI,1),1)];
-c_i=0;
+c_i=1e-6;
 B_iupdate =@(x) a_ela.contact_inequalities(x,POINTS,fracture_matrice,node_map_on,size(A,1));
 
 %% create struct with problem parameters
@@ -120,7 +162,7 @@ elast_problem.B_e=B_e;
 elast_problem.b=b;
 elast_problem.R=R;
 elast_problem.c_e=c_e;
-elast_problem.c_i=[];
+elast_problem.c_i=c_i;
 elast_problem.B_iupdate=B_iupdate;
 elast_problem.plot_func2=plot_func2;
 elast_problem.mat_scale=mat_scale;

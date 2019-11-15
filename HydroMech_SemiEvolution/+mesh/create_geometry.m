@@ -1,5 +1,5 @@
 function [POINTS,ELEMENTS,Dirichlet_boundaries,Neumann_boundaries,Neumann_normalx,Neumann_normaly,...
-    fractures,fractures_positions,no_intersections,fractures_cell,fracture_matrice,fracture_elem_map] = create_geometry(Nxy,L1,L2,frac_start_end)
+    fractures,fractures_positions,no_intersections,fractures_cell,fracture_matrice,fracture_elem_map,intersections] = create_geometry(Nxy,L1,L2,frac_start_end)
 %CREATE_GEOMETRY Summary of this function goes here
 %   Detailed explanation goes here
 nx=Nxy; ny=Nxy;

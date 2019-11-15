@@ -1,7 +1,9 @@
 function [ A,b,u,freenode ] = FEM1D_2(node,fracture)
 %FEM1D Summary of this function goes here
 %   Detailed explanation goes here
-h=sqrt(sum((node(fracture.above_nodes(:,1),:)-node(fracture.above_nodes(:,2),:)).^2,2));
+h1=sqrt(sum((node(fracture.above_nodes(:,1),:)-node(fracture.above_nodes(:,2),:)).^2,2));
+h2=sqrt(sum((node(fracture.under_nodes(:,1),:)-node(fracture.under_nodes(:,2),:)).^2,2));
+h=(h1+h2)/2;
 material=fracture.material;
 n=length(h);
 tmp=material./h;

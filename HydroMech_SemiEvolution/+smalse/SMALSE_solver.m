@@ -1,4 +1,4 @@
-function [D,elast_problem,x_elast] = SMALSE_solver(elast_problem,SMALSE_params)
+function [D,elast_problem,x_elast,ncg] = SMALSE_solver(elast_problem,SMALSE_params)
 %SMALSE_SOLVER Summary of this function goes here
 %   Detailed explanation goes here
 K_plus=elast_problem.A_plus;%*problem_setting.mat_scale;
@@ -18,7 +18,7 @@ NODES = cell2mat(elast_problem.sub_nodes)';
 NODES = NODES(:);
 c_i=B_i*NODES;
 if ~isempty(elast_problem.c_i)
-    c_i=elast_problem.c_i*ones(size(B_i,1),1);
+    c_i=c_i-elast_problem.c_i;
 end
 c=[c_e;c_i];
 B=[B_e;-B_i];
@@ -55,11 +55,11 @@ type=SMALSE_params.type;
 print=SMALSE_params.print;
 update_G_empty=[];
 if isempty(elast_problem.lambda_ker)
-    [lambda_ker,mi,update_temp_struct,~,~] = smalse.SMALSE_update...
+    [lambda_ker,mi,update_temp_struct,~,ncg] = smalse.SMALSE_update...
         (F,f-F*lambda_ImGt,G,c_ker,update_G_empty,[],[],update_temp_struct,idx_no_bounds,...
         rel,tol_to_update,rho0,betarho,Gama,M_start,maxiter_cg,type,print);
 else
-    [lambda_ker,mi,update_temp_struct,~,~] = smalse.SMALSE_update...
+    [lambda_ker,mi,update_temp_struct,~,ncg] = smalse.SMALSE_update...
         (F,f-F*lambda_ImGt,G,c_ker,update_G_empty,elast_problem.lambda_ker,elast_problem.mi,update_temp_struct,idx_no_bounds,...
         rel,tol_to_update,rho0,betarho,Gama,M_start,maxiter_cg,type,print);
 end

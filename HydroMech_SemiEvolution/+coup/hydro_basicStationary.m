@@ -37,12 +37,11 @@ end
 [fracture_matrice] = a_hyd.fracture2cells_parameters( fracture_matrice,ALFA,MAT_FRAC );
 
 [I,M] = a_hyd.interaction_matrix( fracture_matrice,node );
-[F_stif,b_f,u_f,freeNode_f,F_mass] = fractures_matrix_modif( node,fracture_matrice,intersections,alfa_inter*0,lengths);
-F=F_stif+2*F_mass;
+[F,b_f,u_f,freeNode_f] = a_hyd.fractures_matrix( node,fracture_matrice,intersections,alfa_inter,lengths);
 %[B,G,Au] = matrices_modif_lin( fracture_matrice,node );
 %G=[G; zeros(no_intersections,size(G,2))];
 [B, freeNode, b, u0 ] = a_hyd.matrices_assembling( A, I, M, F, freeNode, freeNode_f, b, b_f, u0, u_f );
-N_d_node = length(A);
+
 %N_f_elem = length(Au);
 
 
@@ -71,7 +70,7 @@ b=b-MAT*x;
 x=MAT\b;
 y=y+x;
 
-fprintf('res_hydro=%d\n',norm(MAT*y-b0));
+% fprintf('res_hydro=%d\n',norm(MAT*y-b0));
 end
 u0(freeNode)=y;
 

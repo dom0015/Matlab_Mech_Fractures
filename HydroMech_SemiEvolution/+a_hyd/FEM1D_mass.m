@@ -15,6 +15,9 @@ tmp3=zeros(n+1,1);
 tmp3(2:end)=tmp/6;
 M1=spdiags([tmp1 tmp2 tmp3],-1:1,n+1,n+1);
 
+h=sqrt(sum((node(fracture.under_nodes(:,1),:)-node(fracture.under_nodes(:,2),:)).^2,2));
+n=length(h);
+
 material=fracture.under_material;
 tmp=material.*h;
 tmp1=zeros(n+1,1);

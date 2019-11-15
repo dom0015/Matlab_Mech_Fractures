@@ -25,13 +25,13 @@ hydro_problem.mat_frac_const=par_permeabilita_trhliny/par_dynamicka_viskozita;
 
 %% OTHER INPUT PARAMETERS
 par_storativity = 0.1449e-9;
-hydro_problem.const_cs_domain = par_storativity;
-hydro_problem.const_cs_fracture = par_storativity*1e7;
+hydro_problem.const_cs_domain = hydro_problem.mat_omega_const;
+hydro_problem.const_cs_fracture = hydro_problem.mat_frac_const*elast_problem.par_tloustka_trhliny^2;
 hydro_problem.par_BiotWillis = 0.89;
 hydro_problem.par_a0 = 1e-6;
-hydro_problem.const_delta_t = 1e3;
+hydro_problem.const_delta_t = 1;
 %% SOLVER PARAMETERS
-SMALSE_params.rel=1.0e-12;
+SMALSE_params.rel=1.0e-4;
 SMALSE_params.rho0=1;
 SMALSE_params.betarho=2;
 SMALSE_params.Gama = 1;
@@ -41,15 +41,15 @@ SMALSE_params.maxiter_cg = 3000;
 SMALSE_params.type='m';
 SMALSE_params.print=false;
 SMALSE_params.print_couple=true;
-SMALSE_params.coupling_iter=100;
-SMALSE_params.eps_coupling=1e-6;
+SMALSE_params.coupling_iter=70;
+SMALSE_params.eps_coupling=1e-3;
 
 [elast_problem,shared_data] = elast_preparation(elast_problem,shared_data);
 hydro_problem = hydro_preparation( hydro_problem,shared_data );
 initial_aperture = 1e-4*ones(hydro_problem.no_fractures,1);
 [Q,D,PRESSURE,ugrad,iter,x_elast,response_D] = coup.coupled_solver_adaptiveSemiEvolution(hydro_problem,elast_problem,SMALSE_params,initial_aperture);
 
-viz.fracture_displacement(elast_problem,x_elast)
+%viz.fracture_displacement(elast_problem,x_elast)
 
 figure; imagesc(response_D); colorbar; title("All apertures (cols) in coupling iterations")
 figure; imagesc(log10(max(response_D,1e-5))); colorbar; title("Log of all apertures (cols) in coupling iterations")
