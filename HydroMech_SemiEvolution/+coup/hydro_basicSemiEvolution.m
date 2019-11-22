@@ -13,7 +13,7 @@ no_intersections = size(intersections,1);
 alfa_inter=hydro_problem.alfa_inter;
 lengths=hydro_problem.lengths;
 A=hydro_problem.A;
-M=hydro_problem.M;
+M_=hydro_problem.M;
 freeNode=hydro_problem.freeNode;
 b=hydro_problem.b;
 u0=hydro_problem.u0;
@@ -52,7 +52,7 @@ N_d_node = length(A);
 % disp(max(freeNode))
 b = [b; 0*b_f];
 u0 = [u0; 0*u_f];
-MAT_TIME = [const_domain/const_delta_t*M  zeros(N_d_node,length(F));
+MAT_TIME = [const_domain/const_delta_t*M_  zeros(N_d_node,length(F));
        zeros(length(F),N_d_node)  const_fracture/const_delta_t*F_mass];
 MAT=MAT+MAT_TIME;
 
