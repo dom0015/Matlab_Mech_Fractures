@@ -9,17 +9,17 @@ shared_data.frac_start_end={[0.3 0.2], [0.9 0.2]
             
 %% ELAST PARAMETERS
 elast_problem.sumbdomains_FETI=100;
-elast_problem.par_tloustka_trhliny = 1e-4;
+elast_problem.par_tloustka_trhliny = 1e-6;
 elast_problem.par_Lame_lambda = 1.8e9;
 elast_problem.par_Lame_mu = 4.2e9;
 
 %% HYDRO PARAMETERS
 hydro_problem.cislo_ulohy=4;
 hydro_problem.n_windows=1;
-hydro_problem.DIRICHLET_PRESSURE=1e7; % puvodne1e5; % 
+hydro_problem.DIRICHLET_PRESSURE=1e6; % puvodne1e5; % 
 hydro_problem.hydro_model=0;
 hydro_problem.alfa_inter_const=1e-5;
-par_permeabilita_trhliny = 1e-7;
+par_permeabilita_trhliny = 1e-5;
 par_dynamicka_viskozita = 0.001;
 par_permeabilita_horniny = 1e-15;%permeabilita
 hydro_problem.mat_omega_const=par_permeabilita_horniny/par_dynamicka_viskozita;%hydraulicka konduktivita
@@ -44,7 +44,7 @@ SMALSE_params.type='m';
 SMALSE_params.print=false;
 SMALSE_params.print_couple=true;
 SMALSE_params.coupling_iter=1000;
-SMALSE_params.eps_coupling=1e-5;
+SMALSE_params.eps_coupling=1e-3;
 
 [elast_problem,shared_data] = elast_preparation(elast_problem,shared_data);
 hydro_problem = hydro_preparation( hydro_problem,shared_data );
@@ -53,5 +53,5 @@ initial_aperture = 1e-4*ones(hydro_problem.no_fractures,1);
 
 %viz.fracture_displacement(elast_problem,x_elast)
 
-figure; imagesc(response_D); colorbar; title("All apertures (cols) in coupling iterations")
-figure; imagesc(log10(max(response_D,1e-5))); colorbar; title("Log of all apertures (cols) in coupling iterations")
+%figure; imagesc(response_D); colorbar; title("All apertures (cols) in coupling iterations")
+%figure; imagesc(log10(max(response_D,1e-5))); colorbar; title("Log of all apertures (cols) in coupling iterations")
