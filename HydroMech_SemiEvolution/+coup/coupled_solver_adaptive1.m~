@@ -1,4 +1,4 @@
-function [Q,D,PRESSURE,ugrad,iter,x_elast,response_D] = coupled_solver_adaptive(hydro_problem,elast_problem,SMALSE_params,initial_aperture)
+function [Q,D,PRESSURE,ugrad,iter,x_elast,response_D] = coupled_solver_adaptive1(hydro_problem,elast_problem,SMALSE_params,initial_aperture)
 par_BiotWillis = hydro_problem.par_BiotWillis;
 no_fractures=hydro_problem.no_fractures;
 lengths=hydro_problem.lengths;
@@ -30,38 +30,26 @@ response_D_smooth=cell2mat(D);
 trashold=1;
 trashold_D=0.5;
 alpha=1;
-beta1=5;
-beta2=5;
-
+beta1=10;
+beta2=2;
+load('D_fin2.mat')
 i=1;
 iter=0;
 tmp_prec=1;
 while iter<=SMALSE_params.coupling_iter
     i=i+1;
     iter=iter+1;
-    
+    hydro_problem.const_delta_t=1e-1;
     [~,u0_,ugrad,Q,PRESSURE,~]=coup.hydro_basicSemiEvolution(D_all{i-1},hydro_problem,u_old{i-1});
     shift=hydro_shift(ugrad_all{i-1},ugrad);
     shifts(i)=shift;
     
-    if shift<trashold*0.9
-        hydro_problem.const_delta_t=min(hydro_problem.const_delta_t*2,10/max(trashold,trashold_D));
-    end
-    
-    while shift>=trashold
-        hydro_problem.const_delta_t=hydro_problem.const_delta_t/2;
-        [~,u0_,ugrad,Q,PRESSURE,~]=coup.hydro_basicSemiEvolution(D_all{i-1},hydro_problem,u_old{i-1});
-        shift=hydro_shift(ugrad_all{i-1},ugrad);
-        fprintf('    Correction: Shift: %d, delta T: %d \n',shift,hydro_problem.const_delta_t)
-    end
-    
     cas_krok(i)=hydro_problem.const_delta_t;
-    fprintf('  IT: %d ,Shift: %d, delta T: %d, thashold: %d, trasholdD: %d \n',i,shift,hydro_problem.const_delta_t,trashold,trashold_D)
+    fprintf('  IT: %d ,Shift: %d, delta T: %d, trasholdD: %d \n',i,shift,hydro_problem.const_delta_t,trashold_D)
     
     u_old{i} = u0_;
     ugrad_all{i}=ugrad;
     PRESSURE_all{i}=PRESSURE;
-    
     
     [elast_problem] = feti.assembly_FETI_frac_rhs(elast_problem,PRESSURE_all{i},-ugrad_all{i}*par_BiotWillis);
     [D,elast_problem,x_elast,ncg] = smalse.SMALSE_solver(elast_problem,SMALSE_params);
@@ -77,8 +65,9 @@ while iter<=SMALSE_params.coupling_iter
     fprintf('  Stationary distance: %d',sta_dist)
     
     if iter>2
-        alpha=min(trashold_D/mech_shift(response_D_smooth(:,i-1),response_D(:,i)),0.2);
+        alpha=min(trashold_D/mech_shift(response_D_smooth(:,i-1),response_D(:,i)),1);
     end
+
     
     
     D=smooth_D(D_all{i-1},D,alpha);
@@ -94,27 +83,27 @@ while iter<=SMALSE_params.coupling_iter
     
     fprintf('--- D_now: %d, alpha: %d beta1: %d beta2 %d',D_log_distance_loc,alpha,beta1,beta2)
     
-    
     alphas(i)=alpha;
-    trasholds(i)=trashold;
-    %trashold=max(exp(log(trashold)*0.5+(log(sta_dist))*0.5),1e-6);
-    
-    
-    if iter>5
-        if D_log_distance_loc>mech_shift(response_D(:,i-2),response_D(:,i))
-            trashold_D=trashold_D*0.5;
-        else
-            trashold_D=max(exp(log(trashold_D)*0.75+log(min(D_log_distance_loc/alpha,1)/beta1)*0.25));
-        end
-    end
     
     fprintf('\n')
     if sta_dist/min(hydro_problem.const_delta_t,1)<eps_coupling && (D_log_distance_loc)<0.1
         break
     end
     
-    trashold=max(exp(log(trashold)*0.75+(log(sta_dist/beta2))*0.25),1e-6);
     trashold_Ds(i)=trashold_D;
+    
+    
+%     trashold_D=trashold_D/1.05;
+%     hydro_problem.const_delta_t=hydro_problem.const_delta_t*2;
+%     if alpha>0.2
+%         hydro_problem.const_delta_t=hydro_problem.const_delta_t*2;
+%     end
+%     if alpha<0.1
+%         if sta_dist< D_log_distance_loc
+%             hydro_problem.const_delta_t=hydro_problem.const_delta_t/2;
+%         end
+%         trashold_D=trashold_D*1.2;
+%     end
 end
 
 fprintf('iterations: %d\n',i);
@@ -132,11 +121,8 @@ plot(D_log_distance_all)
 hold on
 plot(1./cas_krok)
 plot(alphas)
-plot(trasholds)
 plot(smooth_distances)
 plot(trashold_Ds)
-%plot(betas1)
-%plot(betas2)
 set(gca,'YScale','log')
 
 
@@ -166,6 +152,6 @@ end
 
 function D=smooth_D(D_old,D,alpha)
 for j=1:length(D)
-    D{j}=exp((log(max(D{j},1e-10))*alpha+(1-alpha)*log(max(D_old{j},1e-10))));
+    D{j}=exp((log(max(D{j},1e-12))*alpha+(1-alpha)*log(max(D_old{j},1e-12))));
 end
 end

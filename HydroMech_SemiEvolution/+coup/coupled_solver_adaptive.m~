@@ -30,6 +30,8 @@ response_D_smooth=cell2mat(D);
 trashold=1;
 trashold_D=1;
 alpha=1;
+beta1=2;
+beta2=5;
 
 i=1;
 iter=0;
@@ -43,7 +45,7 @@ while iter<=SMALSE_params.coupling_iter
     shifts(i)=shift;
     
     if shift<trashold*0.9
-        hydro_problem.const_delta_t=min(hydro_problem.const_delta_t*2,1/max(trashold,trashold_D));
+        hydro_problem.const_delta_t=min(hydro_problem.const_delta_t*2,1000/max(trashold,trashold_D));
     end
     
     while shift>=trashold
@@ -65,7 +67,7 @@ while iter<=SMALSE_params.coupling_iter
     [D,elast_problem,x_elast,ncg] = smalse.SMALSE_solver(elast_problem,SMALSE_params);
     response_D(:,i) =cell2mat(D);
     
-    if ncg<100
+    if ncg<50
         SMALSE_params.rel=max(SMALSE_params.rel*0.5,1e-12);
     end
     
@@ -101,7 +103,7 @@ while iter<=SMALSE_params.coupling_iter
     D_log_distance_loc=mech_shift(response_D(:,i-1),response_D(:,i));
     D_log_distance_all(i)=D_log_distance_loc;
     
-    fprintf('--- D_now: %d, alpha: %d',D_log_distance_loc,alpha)
+    fprintf('--- D_now: %d, alpha: %d beta1: %d beta2 %d',D_log_distance_loc,alpha,beta1,beta2)
     
     
     alphas(i)=alpha;
@@ -109,14 +111,14 @@ while iter<=SMALSE_params.coupling_iter
     %trashold=max(exp(log(trashold)*0.5+(log(sta_dist))*0.5),1e-6);
     
     
-%     if iter>3
-%         if D_log_distance_loc>mech_shift(response_D(:,i-2),response_D(:,i))
-%             trashold_D=trashold_D*0.5;
-%         else
-%             trashold_D=max(exp(log(trashold_D)*0.75+(log(min(smooth_distance/alpha,1))/2)*0.25),1e-6);
-%         end
-%     end
-    trashold_D=max(exp(log(trashold_D)*0.75+(log(min(smooth_distance/alpha,1))/2)*0.25),1e-6);
+    if iter>1
+        if D_log_distance_loc>mech_shift(response_D(:,i-2),response_D(:,i))
+            trashold_D=trashold_D*0.5;
+        else
+            trashold_D=max(exp(log(trashold_D)*0.75+log(min(D_log_distance_loc/alpha,1)/beta1)*0.25),1e-6);
+        end
+    end
+   % trashold_D=max(exp(log(trashold_D)*0.75+log(min(smooth_distance/alpha,1)/2)*0.25),1e-6);
     
 %     if iter>3
 %         if D_log_distance_all(i)>trashold
@@ -140,28 +142,39 @@ while iter<=SMALSE_params.coupling_iter
 %     end
     
     fprintf('\n')
-    if hydro_problem.const_delta_t>1 && sta_dist<eps_coupling && D_log_distance_loc/alpha<eps_coupling
+    if sta_dist/min(hydro_problem.const_delta_t,1)<eps_coupling && (D_log_distance_loc/alpha)<0.1
         break
     end
     
-%     if iter>10
-%     if D_log_distance_all(i)>min(0.9*D_log_distance_all(i-1),0.5)
-%         hydro_problem.const_delta_t=hydro_problem.const_delta_t/10;
-%     else
-%         hydro_problem.const_delta_t=hydro_problem.const_delta_t*1.5;
-%     end
-%     
-%     else
-%         
-%     hydro_problem.const_delta_t=hydro_problem.const_delta_t*1.5;
-%     end
+    if iter>5
+        if D_log_distance_all(i)>min(0.99*min(D_log_distance_all(i-4:i)),0.5)
+            beta1=beta1*1.6;
+        end
+        if alpha <2e-2
+            beta1=beta1/1.5;
+        end
+        if hydro_problem.const_delta_t<1e-2
+           beta2=beta2/1.2; 
+        end
+        if hydro_change(i)>0.99*hydro_change(i-4)
+           beta2=beta2/1.05; 
+        end
+    end
+    %     else
+    %
+    %     hydro_problem.const_delta_t=hydro_problem.const_delta_t*1.5;
+    %     end
 %     hydro_problem.const_delta_t=hydro_problem.const_delta_t*2;
     
 %     if  sta_dist<trashold 
 %         trashold=trashold/1.1
 %     end
-trashold=max(exp(log(trashold)*0.75+(log(sta_dist/2))*0.25),1e-6);
+trashold=max(exp(log(trashold)*0.75+(log(sta_dist/beta2))*0.25),1e-6);
 trashold_Ds(i)=trashold_D;
+beta1=max(min(beta1,10000),1);
+beta2=max(min(beta2,100),1);
+betas1(i)=beta1;
+betas2(i)=beta2;
 end
 
 fprintf('iterations: %d\n',i);
@@ -182,14 +195,27 @@ plot(alphas)
 plot(trasholds)
 plot(smooth_distances)
 plot(trashold_Ds)
+plot(betas1)
+plot(betas2)
+set(gca,'YScale','log')
+
 
 figure
-imagesc(response_D_smooth)
+plot(shifts)
+hold on
+plot(smooth_distances)
+set(gca,'YScale','log')
+
+figure
+imagesc(response_D)
 iter=i;
+
+figure
+trisurf(hydro_problem.ELEMENTS,hydro_problem.POINTS(:,1),hydro_problem.POINTS(:,2),u0_(1:length(hydro_problem.POINTS)),'LineStyle','none');
 end
 
 function shift=hydro_shift(u_old,u_new)
-shift=sort(abs(u_old(:)-u_new(:)))/max(abs(u_new(:)));
+shift=sort(abs(u_old(:)-u_new(:)))/1e6;%/max(abs(u_new(:)));
 shift=shift(ceil(end*0.95));
 end
 
@@ -200,6 +226,6 @@ end
 
 function D=smooth_D(D_old,D,alpha)
 for j=1:length(D)
-    D{j}=exp((log(D{j})*alpha+(1-alpha)*log(D_old{j})));
+    D{j}=exp((log(max(D{j},1e-6))*alpha+(1-alpha)*log(max(D_old{j},1e-6))));
 end
 end

@@ -1,6 +1,6 @@
 
 %% MESH PARAMETERS
-shared_data.Nxy=101;
+shared_data.Nxy=41;
 shared_data.L1=10; shared_data.L2=10;
 shared_data.frac_start_end={[0.3 0.2], [0.9 0.2]
                 [0.3 0.8], [0.9 0.8]
@@ -8,20 +8,20 @@ shared_data.frac_start_end={[0.3 0.2], [0.9 0.2]
                 [0.1 0.3], [0.7 0.9]};
             
 %% ELAST PARAMETERS
-elast_problem.sumbdomains_FETI=100;
-elast_problem.par_tloustka_trhliny = 1e-6;
-elast_problem.par_Lame_lambda = 1.8e9;
-elast_problem.par_Lame_mu = 4.2e9;
+elast_problem.sumbdomains_FETI=20;
+elast_problem.par_tloustka_trhliny = 1e-4;
+elast_problem.par_Lame_lambda = 1e9;%1.8e9;
+elast_problem.par_Lame_mu = 1e9;%4.2e9;
 
 %% HYDRO PARAMETERS
-hydro_problem.cislo_ulohy=4;
+hydro_problem.cislo_ulohy=3;
 hydro_problem.n_windows=1;
 hydro_problem.DIRICHLET_PRESSURE=1e6; % puvodne1e5; % 
 hydro_problem.hydro_model=0;
-hydro_problem.alfa_inter_const=1e-5;
-par_permeabilita_trhliny = 1e-5;
+hydro_problem.alfa_inter_const=1e-8;
+par_permeabilita_trhliny = 1e-9;
 par_dynamicka_viskozita = 0.001;
-par_permeabilita_horniny = 1e-15;%permeabilita
+par_permeabilita_horniny = 1e-18;%permeabilita
 hydro_problem.mat_omega_const=par_permeabilita_horniny/par_dynamicka_viskozita;%hydraulicka konduktivita
 hydro_problem.mat_frac_const=par_permeabilita_trhliny/par_dynamicka_viskozita;
 
@@ -43,7 +43,7 @@ SMALSE_params.maxiter_cg = 3000;
 SMALSE_params.type='m';
 SMALSE_params.print=false;
 SMALSE_params.print_couple=true;
-SMALSE_params.coupling_iter=1000;
+SMALSE_params.coupling_iter=10000;
 SMALSE_params.eps_coupling=1e-3;
 
 [elast_problem,shared_data] = elast_preparation(elast_problem,shared_data);
