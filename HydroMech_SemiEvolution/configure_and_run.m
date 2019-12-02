@@ -15,7 +15,7 @@ elast_problem.par_Lame_mu = 1e9;%4.2e9;
 
 %% HYDRO PARAMETERS
 hydro_problem.cislo_ulohy=3;
-hydro_problem.n_windows=1;
+hydro_problem.n_windows=4;
 hydro_problem.DIRICHLET_PRESSURE=1e6; % puvodne1e5; % 
 hydro_problem.hydro_model=0;
 hydro_problem.alfa_inter_const=1e-8;
@@ -43,14 +43,18 @@ SMALSE_params.maxiter_cg = 3000;
 SMALSE_params.type='m';
 SMALSE_params.print=false;
 SMALSE_params.print_couple=true;
-SMALSE_params.coupling_iter=10000;
-SMALSE_params.eps_coupling=1e-3;
+SMALSE_params.coupling_iter=1000;
+SMALSE_params.eps_coupling=1e-4;
 
 [elast_problem,shared_data] = elast_preparation(elast_problem,shared_data);
 hydro_problem = hydro_preparation( hydro_problem,shared_data );
 initial_aperture = 1e-4*ones(hydro_problem.no_fractures,1);
-[Q,D,PRESSURE,ugrad,iter,x_elast,response_D] = coup.coupled_solver_adaptive(hydro_problem,elast_problem,SMALSE_params,initial_aperture);
+[elast_problem] = smalse.SMALSE_prepare(elast_problem);
 
+params=[-1 -1 -1 -1]*8;
+tic;
+[Q,D,PRESSURE,ugrad,iter,x_elast,response_D] = coup.coupled_solver_adaptive(hydro_problem,elast_problem,SMALSE_params,params);
+toc
 %viz.fracture_displacement(elast_problem,x_elast)
 
 %figure; imagesc(response_D); colorbar; title("All apertures (cols) in coupling iterations")

@@ -1,11 +1,11 @@
-function [PRESSURE,u0,GRAD,Q,PRESSURE_diff,frac_grad,blocks] = ...
-    hydro_basicSemiEvolution(D,hydro_problem,u0_old)%,divergence_diff)
+function [PRESSURE,u0,GRAD,PRESSURE_diff,frac_grad,blocks] = ...
+    hydro_basicSemiEvolution(D,hydro_problem,u0_old,mat_frac)%,divergence_diff)
 
 const_domain = hydro_problem.const_cs_domain;
 const_fracture = hydro_problem.const_cs_fracture;
 const_delta_t = hydro_problem.const_delta_t;
 no_fractures=hydro_problem.no_fractures;
-mat_frac=hydro_problem.mat_frac;
+
 fracture_matrice=hydro_problem.fracture_matrice;
 node=hydro_problem.POINTS;
 intersections=hydro_problem.intersections;
@@ -52,8 +52,7 @@ N_d_node = length(A);
 % disp(max(freeNode))
 b = [b; 0*b_f];
 u0 = [u0; 0*u_f];
-MAT_TIME = [const_domain/const_delta_t*M_  zeros(N_d_node,length(F));
-       zeros(length(F),N_d_node)  const_fracture/const_delta_t*F_mass];
+MAT_TIME = blkdiag(const_domain/const_delta_t*M_, const_fracture/const_delta_t*F_mass);
 MAT=MAT+MAT_TIME;
 
 %%
@@ -112,7 +111,7 @@ upEdge=hydro_problem.upEdge;
 leftEdge=hydro_problem.leftEdge;
 h_elem=hydro_problem.helem;
 
-[ Q ] = coup.extract_flow( hydro_problem.A, u0(1:size(hydro_problem.A,1)), node, elem, h_elem, Dirichlet_windows, downEdge, rightEdge, upEdge, leftEdge );
+%[ Q ] = coup.extract_flow( hydro_problem.A, u0(1:size(hydro_problem.A,1)), node, elem, h_elem, Dirichlet_windows, downEdge, rightEdge, upEdge, leftEdge );
 
 coord1=node(:,1); coord2=node(:,2);
 a1=coord1(elem); a2=coord2(elem);
